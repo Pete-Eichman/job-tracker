@@ -8,6 +8,11 @@ import { updateJobAction } from "@/app/actions/update-job";
 import { SubmitButton } from "@/components/SubmitButton";
 import { CoverLetterGenerator } from "./CoverLetterGenerator";
 import { JOB_STATUS_VALUES, statusLabel } from "@/lib/job-status";
+import {
+  jobStaleness,
+  formatRelativeDays,
+  stalenessTextColor,
+} from "@/lib/staleness";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -130,8 +135,11 @@ export default async function JobDetailPage({
               />
             </label>
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs text-gray-400">
-                Last updated {job.updatedAt.toLocaleString()}
+              <p
+                className={`text-xs ${stalenessTextColor(jobStaleness(job.status, job.updatedAt))}`}
+                title={job.updatedAt.toLocaleString()}
+              >
+                Last touched {formatRelativeDays(job.updatedAt)}
               </p>
               <SubmitButton
                 className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"

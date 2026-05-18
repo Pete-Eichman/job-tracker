@@ -14,6 +14,11 @@ import {
   FILTER_PRESETS,
   type FilterPreset,
 } from "@/lib/job-filters";
+import {
+  jobStaleness,
+  formatRelativeDays,
+  stalenessTextColor,
+} from "@/lib/staleness";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -214,6 +219,12 @@ export default async function DashboardPage({
                     <p className="text-sm text-gray-600">
                       {job.company}
                       {job.location ? ` · ${job.location}` : ""}
+                    </p>
+                    <p
+                      className={`text-xs ${stalenessTextColor(jobStaleness(job.status, job.updatedAt))}`}
+                      title={job.updatedAt.toLocaleString()}
+                    >
+                      Last touched {formatRelativeDays(job.updatedAt)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
