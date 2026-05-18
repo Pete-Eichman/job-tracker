@@ -9,6 +9,7 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "backfill:costs": "tsx scripts/backfill-costs.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -38,6 +39,7 @@
     "eslint-config-next": "16.2.6",
     "prisma": "^7.8.0",
     "tailwindcss": "^4",
+    "tsx": "^4.20.6",
     "typescript": "^5",
     "vitest": "^4.1.6"
   }
