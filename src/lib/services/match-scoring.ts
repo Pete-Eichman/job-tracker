@@ -2,6 +2,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 import { z } from "zod";
 import type { JobModel, ResumeModel } from "@/generated/prisma/models";
+import { TIMEOUTS, isAbortLike, timeoutError } from "@/lib/timeouts";
 
 const MatchSchema = z.object({
   score: z
@@ -103,17 +104,25 @@ ${jobBrief}
 === CANDIDATE RESUME ===
 ${resume.rawText}`;
 
-  const { object, usage } = await generateObject({
-    model: anthropic("claude-sonnet-4-6"),
-    schema: MatchSchema,
-    prompt,
-  });
+  try {
+    const { object, usage } = await generateObject({
+      model: anthropic("claude-sonnet-4-6"),
+      schema: MatchSchema,
+      prompt,
+      abortSignal: AbortSignal.timeout(TIMEOUTS.matchScore),
+    });
 
-  return {
-    result: object,
-    usage: {
-      inputTokens: usage.inputTokens ?? 0,
-      outputTokens: usage.outputTokens ?? 0,
-    },
-  };
+    return {
+      result: object,
+      usage: {
+        inputTokens: usage.inputTokens ?? 0,
+        outputTokens: usage.outputTokens ?? 0,
+      },
+    };
+  } catch (err) {
+    if (isAbortLike(err)) {
+      throw timeoutError("Match scoring", TIMEOUTS.matchScore);
+    }
+    throw err;
+  }
 }

@@ -5,6 +5,7 @@ import type {
   ResumeModel,
   MatchModel,
 } from "@/generated/prisma/models";
+import { TIMEOUTS, isAbortLike, timeoutError } from "@/lib/timeouts";
 
 export type CoverLetterUsage = {
   inputTokens: number;
@@ -88,16 +89,24 @@ ${matchBrief}
 === CANDIDATE RESUME ===
 ${resume.rawText.slice(0, RESUME_CHAR_LIMIT)}`;
 
-  const { text, usage } = await generateText({
-    model: anthropic("claude-sonnet-4-6"),
-    prompt,
-  });
+  try {
+    const { text, usage } = await generateText({
+      model: anthropic("claude-sonnet-4-6"),
+      prompt,
+      abortSignal: AbortSignal.timeout(TIMEOUTS.coverLetter),
+    });
 
-  return {
-    draft: text.trim(),
-    usage: {
-      inputTokens: usage.inputTokens ?? 0,
-      outputTokens: usage.outputTokens ?? 0,
-    },
-  };
+    return {
+      draft: text.trim(),
+      usage: {
+        inputTokens: usage.inputTokens ?? 0,
+        outputTokens: usage.outputTokens ?? 0,
+      },
+    };
+  } catch (err) {
+    if (isAbortLike(err)) {
+      throw timeoutError("Cover letter generation", TIMEOUTS.coverLetter);
+    }
+    throw err;
+  }
 }
