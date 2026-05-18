@@ -4,6 +4,13 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { extractAndSaveJob } from "@/app/actions/extract-job";
 import { SubmitButton } from "@/components/SubmitButton";
+import { formatSpend } from "@/lib/pricing";
+
+function formatTokens(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  return String(n);
+}
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -16,7 +23,7 @@ export default async function DashboardPage() {
   if (!session?.user) redirect("/login");
   const userId = session.user.id!;
 
-  const [jobs, defaultResume] = await Promise.all([
+  const [jobs, defaultResume, usage] = await Promise.all([
     prisma.job.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -28,7 +35,17 @@ export default async function DashboardPage() {
       where: { userId, isDefault: true },
       select: { id: true },
     }),
+    prisma.aiUsage.aggregate({
+      where: { userId },
+      _sum: { costCents: true, inputTokens: true, outputTokens: true },
+      _count: true,
+    }),
   ]);
+
+  const usageCount = usage._count;
+  const totalTokens =
+    (usage._sum.inputTokens ?? 0) + (usage._sum.outputTokens ?? 0);
+  const totalCents = usage._sum.costCents ?? 0;
 
   async function logout() {
     "use server";
@@ -39,7 +56,16 @@ export default async function DashboardPage() {
     <div className="min-h-screen p-8">
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold">Dashboard</h1>
+            {usageCount > 0 && (
+              <p className="text-xs text-gray-500">
+                {usageCount} AI {usageCount === 1 ? "call" : "calls"} ·{" "}
+                {formatTokens(totalTokens)} tokens ·{" "}
+                {formatSpend(totalCents)} spent
+              </p>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <Link
               href="/dashboard/resumes"

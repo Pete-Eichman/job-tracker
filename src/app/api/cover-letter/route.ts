@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { streamCoverLetter } from "@/lib/services/cover-letter";
 import { scoreJob } from "@/app/actions/score-job";
+import { computeCostCents } from "@/lib/pricing";
 
 const BodySchema = z.object({
   jobId: z.string().min(1),
@@ -56,14 +57,20 @@ export async function POST(req: Request) {
       await prisma.coverLetter.create({
         data: { jobId: job.id, draft: text.trim() },
       });
+      const inputTokens = usage.inputTokens ?? 0;
+      const outputTokens = usage.outputTokens ?? 0;
       await prisma.aiUsage.create({
         data: {
           userId,
           operation: "cover_letter",
           model: "claude-sonnet-4-6",
-          inputTokens: usage.inputTokens ?? 0,
-          outputTokens: usage.outputTokens ?? 0,
-          costCents: 0,
+          inputTokens,
+          outputTokens,
+          costCents: computeCostCents(
+            "claude-sonnet-4-6",
+            inputTokens,
+            outputTokens
+          ),
         },
       });
     },

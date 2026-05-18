@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { fetchPageText, extractJobFromText } from "@/lib/services/job-extraction";
 import { scoreJob } from "@/app/actions/score-job";
 import { parseFormData } from "@/lib/forms";
+import { computeCostCents } from "@/lib/pricing";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -39,7 +40,11 @@ export async function extractAndSaveJob(formData: FormData) {
       model: "claude-sonnet-4-6",
       inputTokens: usage.inputTokens,
       outputTokens: usage.outputTokens,
-      costCents: 0,
+      costCents: computeCostCents(
+        "claude-sonnet-4-6",
+        usage.inputTokens,
+        usage.outputTokens
+      ),
     },
   });
 
