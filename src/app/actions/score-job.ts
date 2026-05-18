@@ -1,10 +1,16 @@
 "use server";
 
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { scoreJobAgainstResume } from "@/lib/services/match-scoring";
+import { parseFormData } from "@/lib/forms";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
+const RescoreSchema = z.object({
+  jobId: z.string().min(1),
+});
 
 export async function scoreJob(jobId: string): Promise<void> {
   const session = await auth();
@@ -57,7 +63,6 @@ export async function scoreJob(jobId: string): Promise<void> {
 }
 
 export async function rescoreJobAction(formData: FormData): Promise<void> {
-  const jobId = formData.get("jobId") as string;
-  if (!jobId) throw new Error("jobId is required");
+  const { jobId } = parseFormData(formData, RescoreSchema);
   await scoreJob(jobId);
 }

@@ -7,6 +7,7 @@ import {
   generateCoverLetterAction,
   deleteCoverLetterAction,
 } from "@/app/actions/cover-letter";
+import { SubmitButton } from "@/components/SubmitButton";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -92,12 +93,12 @@ export default async function JobDetailPage({
             {defaultResume ? (
               <form action={rescoreJobAction}>
                 <input type="hidden" name="jobId" value={job.id} />
-                <button
-                  type="submit"
-                  className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50"
+                <SubmitButton
+                  className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  pendingLabel="Scoring…"
                 >
                   {match ? "Rescore" : "Score now"}
-                </button>
+                </SubmitButton>
               </form>
             ) : (
               <Link
@@ -173,12 +174,12 @@ export default async function JobDetailPage({
             {defaultResume ? (
               <form action={generateCoverLetterAction}>
                 <input type="hidden" name="jobId" value={job.id} />
-                <button
-                  type="submit"
-                  className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50"
+                <SubmitButton
+                  className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  pendingLabel="Drafting…"
                 >
                   {coverLetters.length === 0 ? "Generate" : "Regenerate"}
-                </button>
+                </SubmitButton>
               </form>
             ) : (
               <Link
@@ -213,12 +214,12 @@ export default async function JobDetailPage({
                         name="coverLetterId"
                         value={letter.id}
                       />
-                      <button
-                        type="submit"
-                        className="text-xs text-gray-500 hover:text-red-600 hover:underline"
+                      <SubmitButton
+                        className="text-xs text-gray-500 hover:text-red-600 hover:underline disabled:opacity-50"
+                        pendingLabel="Deleting…"
                       >
                         Delete
-                      </button>
+                      </SubmitButton>
                     </form>
                   </div>
                   <pre className="text-sm whitespace-pre-wrap font-sans leading-relaxed text-gray-800">

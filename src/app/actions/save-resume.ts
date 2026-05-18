@@ -1,19 +1,27 @@
 "use server";
 
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { parseFormData } from "@/lib/forms";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
+const SaveResumeSchema = z.object({
+  title: z.string().trim().min(1, "Title is required"),
+  rawText: z.string().trim().min(1, "Resume text is required"),
+});
+
+const SetDefaultSchema = z.object({
+  resumeId: z.string().min(1),
+});
 
 export async function saveResume(formData: FormData): Promise<void> {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
   const userId = session.user.id;
 
-  const title = (formData.get("title") as string | null)?.trim();
-  const rawText = (formData.get("rawText") as string | null)?.trim();
-  if (!title) throw new Error("Title is required");
-  if (!rawText) throw new Error("Resume text is required");
+  const { title, rawText } = parseFormData(formData, SaveResumeSchema);
 
   const existingCount = await prisma.resume.count({ where: { userId } });
 
@@ -35,8 +43,7 @@ export async function setDefaultResume(formData: FormData): Promise<void> {
   if (!session?.user?.id) redirect("/login");
   const userId = session.user.id;
 
-  const resumeId = formData.get("resumeId") as string | null;
-  if (!resumeId) throw new Error("resumeId is required");
+  const { resumeId } = parseFormData(formData, SetDefaultSchema);
 
   const target = await prisma.resume.findFirst({
     where: { id: resumeId, userId },
