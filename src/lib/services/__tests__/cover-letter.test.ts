@@ -87,6 +87,29 @@ describe("generateCoverLetter", () => {
     expect(draft).toBe("hello there");
   });
 
+  it("rethrows a friendly timeout error when the SDK aborts", async () => {
+    generateTextMock.mockRejectedValueOnce(
+      new DOMException("aborted", "TimeoutError")
+    );
+    await expect(generateCoverLetter(baseJob, baseResume)).rejects.toThrow(
+      /Cover letter generation timed out after \d+s/
+    );
+  });
+
+  it("passes an abortSignal to the SDK", async () => {
+    await generateCoverLetter(baseJob, baseResume);
+    const args = generateTextMock.mock.calls[0][0];
+    expect(args.abortSignal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("lets non-abort errors bubble up unchanged", async () => {
+    const sdkError = new Error("rate limited");
+    generateTextMock.mockRejectedValueOnce(sdkError);
+    await expect(generateCoverLetter(baseJob, baseResume)).rejects.toBe(
+      sdkError
+    );
+  });
+
   it("omits optional brief fields when they are absent", async () => {
     const sparseJob = {
       ...baseJob,

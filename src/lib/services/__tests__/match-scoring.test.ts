@@ -84,6 +84,29 @@ describe("scoreJobAgainstResume", () => {
     expect(usage).toEqual({ inputTokens: 0, outputTokens: 0 });
   });
 
+  it("rethrows a friendly timeout error when the SDK aborts", async () => {
+    generateObjectMock.mockRejectedValueOnce(
+      new DOMException("aborted", "TimeoutError")
+    );
+    await expect(scoreJobAgainstResume(baseJob, baseResume)).rejects.toThrow(
+      /Match scoring timed out after \d+s/
+    );
+  });
+
+  it("passes an abortSignal to the SDK", async () => {
+    await scoreJobAgainstResume(baseJob, baseResume);
+    const args = generateObjectMock.mock.calls[0][0];
+    expect(args.abortSignal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("lets non-abort errors bubble up unchanged", async () => {
+    const sdkError = new Error("server error");
+    generateObjectMock.mockRejectedValueOnce(sdkError);
+    await expect(scoreJobAgainstResume(baseJob, baseResume)).rejects.toBe(
+      sdkError
+    );
+  });
+
   it("returns the model's structured result", async () => {
     const fakeMatch = {
       score: 88,
