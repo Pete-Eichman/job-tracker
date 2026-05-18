@@ -22,15 +22,16 @@ model User {
 }
 
 model Resume {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title     String
-  rawText   String
-  fileUrl   String?
-  isDefault Boolean  @default(false)
-  createdAt DateTime @default(now())
-  matches   Match[]
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  rawText      String
+  fileUrl      String?
+  isDefault    Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  matches      Match[]
+  coverLetters CoverLetter[]
 }
 
 model Job {
@@ -80,8 +81,12 @@ model CoverLetter {
   id        String   @id @default(cuid())
   jobId     String
   job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resumeId  String?
+  resume    Resume?  @relation(fields: [resumeId], references: [id], onDelete: SetNull)
   draft     String
   createdAt DateTime @default(now())
+
+  @@index([resumeId])
 }
 
 model AiUsage {
