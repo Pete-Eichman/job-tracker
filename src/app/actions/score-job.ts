@@ -11,9 +11,10 @@ import { redirect } from "next/navigation";
 
 const RescoreSchema = z.object({
   jobId: z.string().min(1),
+  resumeId: z.string().optional(),
 });
 
-export async function scoreJob(jobId: string): Promise<void> {
+export async function scoreJob(jobId: string, resumeId?: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
   const userId = session.user.id;
@@ -23,10 +24,10 @@ export async function scoreJob(jobId: string): Promise<void> {
   });
   if (!job) throw new Error("Job not found");
 
-  const resume = await prisma.resume.findFirst({
-    where: { userId, isDefault: true },
-  });
-  if (!resume) throw new Error("No default resume. Add a resume to enable match scoring.");
+  const resume = resumeId
+    ? await prisma.resume.findFirst({ where: { id: resumeId, userId } })
+    : await prisma.resume.findFirst({ where: { userId, isDefault: true } });
+  if (!resume) throw new Error("Resume not found. Add a resume to enable match scoring.");
 
   const { result, usage } = await scoreJobAgainstResume(job, resume);
 
@@ -68,6 +69,6 @@ export async function scoreJob(jobId: string): Promise<void> {
 }
 
 export async function rescoreJobAction(formData: FormData): Promise<void> {
-  const { jobId } = parseFormData(formData, RescoreSchema);
-  await scoreJob(jobId);
+  const { jobId, resumeId } = parseFormData(formData, RescoreSchema);
+  await scoreJob(jobId, resumeId);
 }

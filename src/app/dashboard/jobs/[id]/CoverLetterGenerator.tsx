@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 
 type Props = {
   jobId: string;
+  resumeId: string;
   hasExisting: boolean;
 };
 
-export function CoverLetterGenerator({ jobId, hasExisting }: Props) {
+export function CoverLetterGenerator({ jobId, resumeId, hasExisting }: Props) {
   const router = useRouter();
   const [text, setText] = useState("");
   const [pending, setPending] = useState(false);
@@ -22,7 +23,7 @@ export function CoverLetterGenerator({ jobId, hasExisting }: Props) {
       const res = await fetch("/api/cover-letter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId }),
+        body: JSON.stringify({ jobId, resumeId }),
       });
       if (!res.ok || !res.body) {
         const message = (await res.text()) || `Request failed (${res.status})`;

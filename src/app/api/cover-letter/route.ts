@@ -7,6 +7,7 @@ import { computeCostCents } from "@/lib/pricing";
 
 const BodySchema = z.object({
   jobId: z.string().min(1),
+  resumeId: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -26,17 +27,17 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return new Response("jobId is required", { status: 400 });
   }
-  const { jobId } = parsed.data;
+  const { jobId, resumeId } = parsed.data;
 
   const job = await prisma.job.findFirst({ where: { id: jobId, userId } });
   if (!job) return new Response("Job not found", { status: 404 });
 
-  const resume = await prisma.resume.findFirst({
-    where: { userId, isDefault: true },
-  });
+  const resume = resumeId
+    ? await prisma.resume.findFirst({ where: { id: resumeId, userId } })
+    : await prisma.resume.findFirst({ where: { userId, isDefault: true } });
   if (!resume) {
     return new Response(
-      "No default resume. Add a resume to draft a cover letter.",
+      "Resume not found. Add a resume to draft a cover letter.",
       { status: 400 }
     );
   }
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
     where: { jobId_resumeId: { jobId: job.id, resumeId: resume.id } },
   });
   if (!match) {
-    await scoreJob(job.id);
+    await scoreJob(job.id, resume.id);
     match = await prisma.match.findUnique({
       where: { jobId_resumeId: { jobId: job.id, resumeId: resume.id } },
     });
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
     onFinish: async ({ text, usage, finishReason }) => {
       if (finishReason !== "stop") return;
       await prisma.coverLetter.create({
-        data: { jobId: job.id, draft: text.trim() },
+        data: { jobId: job.id, resumeId: resume.id, draft: text.trim() },
       });
       const inputTokens = usage.inputTokens ?? 0;
       const outputTokens = usage.outputTokens ?? 0;

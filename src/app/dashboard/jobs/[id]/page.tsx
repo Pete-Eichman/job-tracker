@@ -13,6 +13,7 @@ import {
   formatRelativeDays,
   stalenessTextColor,
 } from "@/lib/staleness";
+import { pickResumeId } from "@/lib/job-resume";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -22,29 +23,44 @@ function scoreColor(score: number): string {
 
 export default async function JobDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ resume?: string | string[] }>;
 }) {
   const { id } = await params;
+  const { resume: requestedResume } = await searchParams;
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+
+  const resumes = await prisma.resume.findMany({
+    where: { userId: session.user.id },
+    orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
+    select: { id: true, title: true, isDefault: true },
+  });
+  const selectedResumeId = pickResumeId(resumes, requestedResume);
+  const selectedResume = resumes.find((r) => r.id === selectedResumeId) ?? null;
 
   const job = await prisma.job.findFirst({
     where: { id, userId: session.user.id },
     include: {
-      matches: { take: 1, orderBy: { createdAt: "desc" } },
-      coverLetters: { orderBy: { createdAt: "desc" } },
+      matches: selectedResumeId
+        ? {
+            where: { resumeId: selectedResumeId },
+            take: 1,
+            orderBy: { createdAt: "desc" },
+          }
+        : { take: 0 },
+      coverLetters: {
+        orderBy: { createdAt: "desc" },
+        include: { resume: { select: { id: true, title: true } } },
+      },
     },
   });
   if (!job) notFound();
 
   const match = job.matches[0];
   const coverLetters = job.coverLetters;
-
-  const defaultResume = await prisma.resume.findFirst({
-    where: { userId: session.user.id, isDefault: true },
-    select: { id: true },
-  });
 
   return (
     <div className="min-h-screen p-8">
@@ -151,12 +167,46 @@ export default async function JobDetailPage({
           </form>
         </section>
 
+        {resumes.length >= 2 && (
+          <section className="border rounded-lg p-3 space-y-2">
+            <p className="text-xs text-gray-500">Resume</p>
+            <div className="flex flex-wrap gap-2">
+              {resumes.map((r) => {
+                const active = r.id === selectedResumeId;
+                return (
+                  <Link
+                    key={r.id}
+                    href={`/dashboard/jobs/${job.id}?resume=${r.id}`}
+                    className={`text-xs px-3 py-1 rounded-full border ${
+                      active
+                        ? "bg-gray-900 text-white border-gray-900"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {r.title}
+                    {r.isDefault ? " ★" : ""}
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         <section className="border rounded-lg p-4 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-medium">Match against default resume</h2>
-            {defaultResume ? (
+            <h2 className="font-medium">
+              {selectedResume
+                ? `Match against ${selectedResume.title}`
+                : "Match"}
+            </h2>
+            {selectedResume ? (
               <form action={rescoreJobAction}>
                 <input type="hidden" name="jobId" value={job.id} />
+                <input
+                  type="hidden"
+                  name="resumeId"
+                  value={selectedResume.id}
+                />
                 <SubmitButton
                   className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   pendingLabel="Scoring…"
@@ -225,9 +275,9 @@ export default async function JobDetailPage({
             </>
           ) : (
             <p className="text-sm text-gray-500">
-              {defaultResume
-                ? "Not scored yet. Click Score now to evaluate this job against your default resume."
-                : "Add a default resume to score this job."}
+              {selectedResume
+                ? `Not scored yet. Click Score now to evaluate this job against ${selectedResume.title}.`
+                : "Add a resume to score this job."}
             </p>
           )}
         </section>
@@ -235,9 +285,10 @@ export default async function JobDetailPage({
         <section className="border rounded-lg p-4 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-medium">Cover letters</h2>
-            {defaultResume ? (
+            {selectedResume ? (
               <CoverLetterGenerator
                 jobId={job.id}
+                resumeId={selectedResume.id}
                 hasExisting={coverLetters.length > 0}
               />
             ) : (
@@ -252,9 +303,9 @@ export default async function JobDetailPage({
 
           {coverLetters.length === 0 ? (
             <p className="text-sm text-gray-500">
-              {defaultResume
+              {selectedResume
                 ? "No cover letters yet. Generate one to draft an application."
-                : "Add a default resume to draft a cover letter."}
+                : "Add a resume to draft a cover letter."}
             </p>
           ) : (
             <div className="space-y-3">
@@ -266,6 +317,8 @@ export default async function JobDetailPage({
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs text-gray-500">
                       {letter.createdAt.toLocaleString()}
+                      {" · "}
+                      {letter.resume?.title ?? "unknown resume"}
                     </p>
                     <form action={deleteCoverLetterAction}>
                       <input
