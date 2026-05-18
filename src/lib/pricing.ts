@@ -25,3 +25,19 @@ export function computeCostCents(
 export function formatSpend(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
+
+export function formatTokens(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  return String(n);
+}
+
+const OPERATION_LABELS: Record<string, string> = {
+  job_extract: "Job extracts",
+  match_score: "Match scores",
+  cover_letter: "Cover letters",
+};
+
+export function formatOperation(op: string): string {
+  return OPERATION_LABELS[op] ?? op;
+}
