@@ -7,6 +7,8 @@ import {
   formatTokens,
   formatOperation,
 } from "@/lib/pricing";
+import { backfillUsageCostsAction } from "@/app/actions/backfill";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export default async function UsagePage() {
   const session = await auth();
@@ -118,13 +120,23 @@ export default async function UsagePage() {
             </div>
 
             {untrackedCount > 0 && (
-              <p className="text-xs text-gray-500">
-                {untrackedCount} older{" "}
-                {untrackedCount === 1 ? "row was" : "rows were"} written before
-                cost tracking landed and{" "}
-                {untrackedCount === 1 ? "shows" : "show"} $0.00. Token counts
-                are still correct.
-              </p>
+              <div className="space-y-2">
+                <p className="text-xs text-gray-500">
+                  {untrackedCount} older{" "}
+                  {untrackedCount === 1 ? "row was" : "rows were"} written
+                  before cost tracking landed and{" "}
+                  {untrackedCount === 1 ? "shows" : "show"} $0.00. Token counts
+                  are still correct.
+                </p>
+                <form action={backfillUsageCostsAction}>
+                  <SubmitButton
+                    pendingLabel="Backfilling…"
+                    className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Backfill costs for these rows
+                  </SubmitButton>
+                </form>
+              </div>
             )}
           </>
         )}
