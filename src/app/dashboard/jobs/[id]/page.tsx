@@ -3,6 +3,10 @@ import { prisma } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { rescoreJobAction } from "@/app/actions/score-job";
+import {
+  generateCoverLetterAction,
+  deleteCoverLetterAction,
+} from "@/app/actions/cover-letter";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -23,11 +27,13 @@ export default async function JobDetailPage({
     where: { id, userId: session.user.id },
     include: {
       matches: { take: 1, orderBy: { createdAt: "desc" } },
+      coverLetters: { orderBy: { createdAt: "desc" } },
     },
   });
   if (!job) notFound();
 
   const match = job.matches[0];
+  const coverLetters = job.coverLetters;
 
   const defaultResume = await prisma.resume.findFirst({
     where: { userId: session.user.id, isDefault: true },
@@ -158,6 +164,69 @@ export default async function JobDetailPage({
                 ? "Not scored yet. Click Score now to evaluate this job against your default resume."
                 : "Add a default resume to score this job."}
             </p>
+          )}
+        </section>
+
+        <section className="border rounded-lg p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-medium">Cover letters</h2>
+            {defaultResume ? (
+              <form action={generateCoverLetterAction}>
+                <input type="hidden" name="jobId" value={job.id} />
+                <button
+                  type="submit"
+                  className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50"
+                >
+                  {coverLetters.length === 0 ? "Generate" : "Regenerate"}
+                </button>
+              </form>
+            ) : (
+              <Link
+                href="/dashboard/resumes"
+                className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50"
+              >
+                Add a resume
+              </Link>
+            )}
+          </div>
+
+          {coverLetters.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              {defaultResume
+                ? "No cover letters yet. Generate one to draft an application."
+                : "Add a default resume to draft a cover letter."}
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {coverLetters.map((letter) => (
+                <article
+                  key={letter.id}
+                  className="border rounded-md p-3 space-y-2 bg-gray-50/50"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs text-gray-500">
+                      {letter.createdAt.toLocaleString()}
+                    </p>
+                    <form action={deleteCoverLetterAction}>
+                      <input
+                        type="hidden"
+                        name="coverLetterId"
+                        value={letter.id}
+                      />
+                      <button
+                        type="submit"
+                        className="text-xs text-gray-500 hover:text-red-600 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                  <pre className="text-sm whitespace-pre-wrap font-sans leading-relaxed text-gray-800">
+                    {letter.draft}
+                  </pre>
+                </article>
+              ))}
+            </div>
           )}
         </section>
 
