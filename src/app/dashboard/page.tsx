@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { extractAndSaveJob } from "@/app/actions/extract-job";
+import { SubmitButton } from "@/components/SubmitButton";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -47,12 +48,9 @@ export default async function DashboardPage() {
               Resumes
             </Link>
             <form action={logout}>
-              <button
-                type="submit"
-                className="px-4 py-2 border rounded-md text-sm"
-              >
+              <SubmitButton className="px-4 py-2 border rounded-md text-sm disabled:opacity-50">
                 Sign out
-              </button>
+              </SubmitButton>
             </form>
           </div>
         </div>
@@ -75,12 +73,12 @@ export default async function DashboardPage() {
             placeholder="Paste a job posting URL…"
             className="flex-1 px-3 py-2 border rounded-md text-sm"
           />
-          <button
-            type="submit"
-            className="px-4 py-2 bg-black text-white rounded-md text-sm hover:bg-zinc-800"
+          <SubmitButton
+            className="px-4 py-2 bg-black text-white rounded-md text-sm hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            pendingLabel="Extracting…"
           >
             Extract
-          </button>
+          </SubmitButton>
         </form>
 
         <div className="space-y-4">

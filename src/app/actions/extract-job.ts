@@ -1,19 +1,24 @@
 "use server";
 
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { fetchPageText, extractJobFromText } from "@/lib/services/job-extraction";
 import { scoreJob } from "@/app/actions/score-job";
+import { parseFormData } from "@/lib/forms";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
+const ExtractSchema = z.object({
+  url: z.string().url(),
+});
 
 export async function extractAndSaveJob(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
   const userId = session.user.id;
 
-  const url = formData.get("url") as string;
-  if (!url) throw new Error("URL is required");
+  const { url } = parseFormData(formData, ExtractSchema);
 
   const rawText = await fetchPageText(url);
   const { result: extracted, usage } = await extractJobFromText(rawText);

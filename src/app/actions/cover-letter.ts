@@ -1,11 +1,21 @@
 "use server";
 
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { generateCoverLetter } from "@/lib/services/cover-letter";
 import { scoreJob } from "@/app/actions/score-job";
+import { parseFormData } from "@/lib/forms";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
+const GenerateSchema = z.object({
+  jobId: z.string().min(1),
+});
+
+const DeleteSchema = z.object({
+  coverLetterId: z.string().min(1),
+});
 
 export async function generateCoverLetterAction(
   formData: FormData
@@ -14,8 +24,7 @@ export async function generateCoverLetterAction(
   if (!session?.user?.id) redirect("/login");
   const userId = session.user.id;
 
-  const jobId = formData.get("jobId") as string | null;
-  if (!jobId) throw new Error("jobId is required");
+  const { jobId } = parseFormData(formData, GenerateSchema);
 
   const job = await prisma.job.findFirst({ where: { id: jobId, userId } });
   if (!job) throw new Error("Job not found");
@@ -68,8 +77,7 @@ export async function deleteCoverLetterAction(
   if (!session?.user?.id) redirect("/login");
   const userId = session.user.id;
 
-  const coverLetterId = formData.get("coverLetterId") as string | null;
-  if (!coverLetterId) throw new Error("coverLetterId is required");
+  const { coverLetterId } = parseFormData(formData, DeleteSchema);
 
   const letter = await prisma.coverLetter.findUnique({
     where: { id: coverLetterId },
