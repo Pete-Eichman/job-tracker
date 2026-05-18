@@ -115,6 +115,22 @@ describe("presetHref", () => {
   it("emits only q when preset is 'all' but query is set", () => {
     expect(presetHref("all", "Acme")).toBe("/dashboard?q=Acme");
   });
+
+  it("appends a non-default sort param", () => {
+    expect(presetHref("all", "", "stale")).toBe("/dashboard?sort=stale");
+  });
+
+  it("preserves status, sort, and query together", () => {
+    const href = presetHref("active", "", "stale");
+    expect(href).toContain(
+      "status=APPLIED%2CPHONE_SCREEN%2CTECHNICAL%2CONSITE"
+    );
+    expect(href).toContain("sort=stale");
+  });
+
+  it("omits the default 'created' sort from the URL", () => {
+    expect(presetHref("all", "Acme", "created")).toBe("/dashboard?q=Acme");
+  });
 });
 
 describe("jobWhereFromFilter", () => {
