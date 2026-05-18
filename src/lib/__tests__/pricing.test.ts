@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { computeCostCents, formatSpend } from "@/lib/pricing";
+import {
+  computeCostCents,
+  formatSpend,
+  formatTokens,
+  formatOperation,
+} from "@/lib/pricing";
 
 describe("computeCostCents", () => {
   it("charges the input rate for 1M input tokens", () => {
@@ -34,5 +39,33 @@ describe("formatSpend", () => {
 
   it("renders dollar amounts with two decimals", () => {
     expect(formatSpend(12_345)).toBe("$123.45");
+  });
+});
+
+describe("formatTokens", () => {
+  it("renders small numbers as-is", () => {
+    expect(formatTokens(0)).toBe("0");
+    expect(formatTokens(999)).toBe("999");
+  });
+
+  it("renders thousands with a k suffix and one decimal", () => {
+    expect(formatTokens(1_500)).toBe("1.5k");
+    expect(formatTokens(45_200)).toBe("45.2k");
+  });
+
+  it("renders millions with an M suffix and one decimal", () => {
+    expect(formatTokens(2_500_000)).toBe("2.5M");
+  });
+});
+
+describe("formatOperation", () => {
+  it("maps known operation codes to readable labels", () => {
+    expect(formatOperation("job_extract")).toBe("Job extracts");
+    expect(formatOperation("match_score")).toBe("Match scores");
+    expect(formatOperation("cover_letter")).toBe("Cover letters");
+  });
+
+  it("falls back to the raw code for unknown operations", () => {
+    expect(formatOperation("something_new")).toBe("something_new");
   });
 });

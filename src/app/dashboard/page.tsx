@@ -4,13 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { extractAndSaveJob } from "@/app/actions/extract-job";
 import { SubmitButton } from "@/components/SubmitButton";
-import { formatSpend } from "@/lib/pricing";
-
-function formatTokens(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
-  return String(n);
-}
+import { formatSpend, formatTokens } from "@/lib/pricing";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -59,11 +53,14 @@ export default async function DashboardPage() {
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold">Dashboard</h1>
             {usageCount > 0 && (
-              <p className="text-xs text-gray-500">
+              <Link
+                href="/dashboard/usage"
+                className="text-xs text-gray-500 hover:text-gray-800 hover:underline"
+              >
                 {usageCount} AI {usageCount === 1 ? "call" : "calls"} ·{" "}
                 {formatTokens(totalTokens)} tokens ·{" "}
                 {formatSpend(totalCents)} spent
-              </p>
+              </Link>
             )}
           </div>
           <div className="flex items-center gap-2">
