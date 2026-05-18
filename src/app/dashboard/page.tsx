@@ -6,6 +6,14 @@ import { extractAndSaveJob } from "@/app/actions/extract-job";
 import { SubmitButton } from "@/components/SubmitButton";
 import { formatSpend, formatTokens } from "@/lib/pricing";
 import { statusColor, statusLabel } from "@/lib/job-status";
+import {
+  parseJobFilter,
+  activePreset,
+  presetHref,
+  jobWhereFromFilter,
+  FILTER_PRESETS,
+  type FilterPreset,
+} from "@/lib/job-filters";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -13,14 +21,33 @@ function scoreColor(score: number): string {
   return "text-gray-700 bg-gray-100";
 }
 
-export default async function DashboardPage() {
+const PRESET_LABELS: Record<FilterPreset, string> = {
+  all: "All",
+  active: "Active",
+  saved: "Saved",
+  offers: "Offers",
+  closed: "Closed",
+};
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    status?: string | string[];
+    q?: string | string[];
+  }>;
+}) {
   const session = await auth();
   if (!session?.user) redirect("/login");
   const userId = session.user.id!;
 
+  const filter = parseJobFilter(await searchParams);
+  const active = activePreset(filter);
+  const hiddenStatus = filter.statuses.join(",");
+
   const [jobs, defaultResume, usage] = await Promise.all([
     prisma.job.findMany({
-      where: { userId },
+      where: jobWhereFromFilter(userId, filter),
       orderBy: { createdAt: "desc" },
       include: {
         matches: { take: 1, orderBy: { createdAt: "desc" } },
@@ -36,6 +63,8 @@ export default async function DashboardPage() {
       _count: true,
     }),
   ]);
+
+  const isFiltered = active !== "all" || filter.query !== "";
 
   const usageCount = usage._count;
   const totalTokens =
@@ -105,10 +134,69 @@ export default async function DashboardPage() {
           </SubmitButton>
         </form>
 
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {(Object.keys(FILTER_PRESETS) as FilterPreset[]).map((preset) => {
+              const isActive = active === preset;
+              return (
+                <Link
+                  key={preset}
+                  href={presetHref(preset, filter.query)}
+                  className={`text-xs px-3 py-1 rounded-full border ${
+                    isActive
+                      ? "bg-black text-white border-black"
+                      : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  {PRESET_LABELS[preset]}
+                </Link>
+              );
+            })}
+          </div>
+          <form action="/dashboard" className="flex gap-2">
+            <input type="hidden" name="status" value={hiddenStatus} />
+            <input
+              name="q"
+              type="search"
+              defaultValue={filter.query}
+              placeholder="Search company or title…"
+              className="flex-1 px-3 py-2 border rounded-md text-sm"
+            />
+            <button
+              type="submit"
+              className="px-3 py-2 border rounded-md text-sm hover:bg-gray-50"
+            >
+              Search
+            </button>
+            {filter.query !== "" && (
+              <Link
+                href={
+                  hiddenStatus
+                    ? `/dashboard?status=${encodeURIComponent(hiddenStatus)}`
+                    : "/dashboard"
+                }
+                className="px-3 py-2 border rounded-md text-sm text-gray-600 hover:bg-gray-50"
+                title="Clear search"
+              >
+                ×
+              </Link>
+            )}
+          </form>
+        </div>
+
         <div className="space-y-4">
-          {jobs.length === 0 && (
+          {jobs.length === 0 && !isFiltered && (
             <p className="text-sm text-gray-500">
               No jobs saved yet. Paste a URL above to get started.
+            </p>
+          )}
+          {jobs.length === 0 && isFiltered && (
+            <p className="text-sm text-gray-500">
+              No jobs match this filter.{" "}
+              <Link href="/dashboard" className="underline">
+                Clear filters
+              </Link>
+              .
             </p>
           )}
           {jobs.map((job) => {
