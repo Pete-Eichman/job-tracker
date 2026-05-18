@@ -5,6 +5,7 @@ import Link from "next/link";
 import { extractAndSaveJob } from "@/app/actions/extract-job";
 import { SubmitButton } from "@/components/SubmitButton";
 import { formatSpend, formatTokens } from "@/lib/pricing";
+import { statusColor, statusLabel } from "@/lib/job-status";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -136,8 +137,10 @@ export default async function DashboardPage() {
                     >
                       {match ? match.score : "—"}
                     </span>
-                    <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
-                      {job.status}
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${statusColor(job.status)}`}
+                    >
+                      {statusLabel(job.status)}
                     </span>
                   </div>
                 </div>
