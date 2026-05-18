@@ -23,12 +23,7 @@ export type ExtractionUsage = {
   outputTokens: number;
 };
 
-export async function fetchPageText(url: string): Promise<string> {
-  const res = await fetch(url, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; JobTracker/1.0)" },
-  });
-  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
-  const html = await res.text();
+export function stripHtml(html: string): string {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
@@ -36,6 +31,14 @@ export async function fetchPageText(url: string): Promise<string> {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 20000);
+}
+
+export async function fetchPageText(url: string): Promise<string> {
+  const res = await fetch(url, {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; JobTracker/1.0)" },
+  });
+  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
+  return stripHtml(await res.text());
 }
 
 export async function extractJobFromText(
