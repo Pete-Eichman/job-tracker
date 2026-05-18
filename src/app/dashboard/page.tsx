@@ -19,6 +19,15 @@ import {
   formatRelativeDays,
   stalenessTextColor,
 } from "@/lib/staleness";
+import {
+  parseJobSort,
+  prismaOrderBy,
+  compareByStale,
+  compareByScore,
+  sortHref,
+  sortLabel,
+  JOB_SORT_VALUES,
+} from "@/lib/job-sort";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -40,20 +49,23 @@ export default async function DashboardPage({
   searchParams: Promise<{
     status?: string | string[];
     q?: string | string[];
+    sort?: string | string[];
   }>;
 }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
   const userId = session.user.id!;
 
-  const filter = parseJobFilter(await searchParams);
+  const params = await searchParams;
+  const filter = parseJobFilter(params);
+  const sort = parseJobSort(params.sort);
   const active = activePreset(filter);
   const hiddenStatus = filter.statuses.join(",");
 
-  const [jobs, defaultResume, usage] = await Promise.all([
+  const [jobsRaw, defaultResume, usage] = await Promise.all([
     prisma.job.findMany({
       where: jobWhereFromFilter(userId, filter),
-      orderBy: { createdAt: "desc" },
+      orderBy: prismaOrderBy(sort) ?? { createdAt: "desc" },
       include: {
         matches: { take: 1, orderBy: { createdAt: "desc" } },
       },
@@ -68,6 +80,14 @@ export default async function DashboardPage({
       _count: true,
     }),
   ]);
+
+  const now = new Date();
+  const jobs =
+    sort === "stale"
+      ? [...jobsRaw].sort((a, b) => compareByStale(a, b, now))
+      : sort === "score"
+        ? [...jobsRaw].sort(compareByScore)
+        : jobsRaw;
 
   const isFiltered = active !== "all" || filter.query !== "";
 
@@ -146,7 +166,7 @@ export default async function DashboardPage({
               return (
                 <Link
                   key={preset}
-                  href={presetHref(preset, filter.query)}
+                  href={presetHref(preset, filter.query, sort)}
                   className={`text-xs px-3 py-1 rounded-full border ${
                     isActive
                       ? "bg-black text-white border-black"
@@ -158,8 +178,28 @@ export default async function DashboardPage({
               );
             })}
           </div>
+          <div className="flex flex-wrap gap-2 items-center text-xs">
+            <span className="text-gray-500">Sort:</span>
+            {JOB_SORT_VALUES.map((value) => {
+              const isActive = sort === value;
+              return (
+                <Link
+                  key={value}
+                  href={sortHref(value, filter.statuses, filter.query)}
+                  className={`px-2 py-1 rounded-full border ${
+                    isActive
+                      ? "bg-gray-800 text-white border-gray-800"
+                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  {sortLabel(value)}
+                </Link>
+              );
+            })}
+          </div>
           <form action="/dashboard" className="flex gap-2">
             <input type="hidden" name="status" value={hiddenStatus} />
+            <input type="hidden" name="sort" value={sort} />
             <input
               name="q"
               type="search"
@@ -175,11 +215,7 @@ export default async function DashboardPage({
             </button>
             {filter.query !== "" && (
               <Link
-                href={
-                  hiddenStatus
-                    ? `/dashboard?status=${encodeURIComponent(hiddenStatus)}`
-                    : "/dashboard"
-                }
+                href={sortHref(sort, filter.statuses, "")}
                 className="px-3 py-2 border rounded-md text-sm text-gray-600 hover:bg-gray-50"
                 title="Clear search"
               >

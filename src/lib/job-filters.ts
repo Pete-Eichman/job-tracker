@@ -1,6 +1,7 @@
 import type { JobStatus } from "@/generated/prisma/enums";
 import type { Prisma } from "@/generated/prisma/client";
 import { JOB_STATUS_VALUES } from "@/lib/job-status";
+import type { JobSort } from "@/lib/job-sort";
 
 export type JobFilter = {
   statuses: JobStatus[];
@@ -47,11 +48,16 @@ export function activePreset(filter: JobFilter): FilterPreset | null {
   return null;
 }
 
-export function presetHref(preset: FilterPreset, query: string): string {
+export function presetHref(
+  preset: FilterPreset,
+  query: string,
+  sort: JobSort = "created"
+): string {
   const params = new URLSearchParams();
   const statuses = FILTER_PRESETS[preset];
   if (statuses.length > 0) params.set("status", statuses.join(","));
   if (query) params.set("q", query);
+  if (sort !== "created") params.set("sort", sort);
   const qs = params.toString();
   return qs ? `/dashboard?${qs}` : "/dashboard";
 }
