@@ -18,6 +18,11 @@ const JobSchema = z.object({
 
 export type ExtractedJob = z.infer<typeof JobSchema>;
 
+export type ExtractionUsage = {
+  inputTokens: number;
+  outputTokens: number;
+};
+
 export async function fetchPageText(url: string): Promise<string> {
   const res = await fetch(url, {
     headers: { "User-Agent": "Mozilla/5.0 (compatible; JobTracker/1.0)" },
@@ -35,11 +40,17 @@ export async function fetchPageText(url: string): Promise<string> {
 
 export async function extractJobFromText(
   rawText: string
-): Promise<ExtractedJob> {
-  const { object } = await generateObject({
+): Promise<{ result: ExtractedJob; usage: ExtractionUsage }> {
+  const { object, usage } = await generateObject({
     model: anthropic("claude-sonnet-4-6"),
     schema: JobSchema,
     prompt: `Extract structured job posting information from the following text. For salary, extract numbers only (no currency symbols). For workMode, use REMOTE, HYBRID, or ONSITE only if clearly stated.\n\n${rawText}`,
   });
-  return object;
+  return {
+    result: object,
+    usage: {
+      inputTokens: usage.inputTokens ?? 0,
+      outputTokens: usage.outputTokens ?? 0,
+    },
+  };
 }
