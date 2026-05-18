@@ -1,16 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const generateTextMock = vi.fn();
+const streamTextMock = vi.fn();
 
 vi.mock("ai", () => ({
-  generateText: (...args: unknown[]) => generateTextMock(...args),
+  streamText: (...args: unknown[]) => streamTextMock(...args),
 }));
 
 vi.mock("@ai-sdk/anthropic", () => ({
   anthropic: (name: string) => ({ provider: "anthropic", name }),
 }));
 
-import { generateCoverLetter } from "@/lib/services/cover-letter";
+import {
+  buildCoverLetterPrompt,
+  streamCoverLetter,
+} from "@/lib/services/cover-letter";
 
 const baseJob = {
   title: "Senior Frontend Engineer",
@@ -25,22 +28,13 @@ const baseJob = {
 
 const baseResume = { rawText: "Engineer with React and TS background." };
 
-beforeEach(() => {
-  generateTextMock.mockReset();
-  generateTextMock.mockResolvedValue({
-    text: "  Dear hiring team, drafted body.  ",
-    usage: { inputTokens: 123, outputTokens: 456 },
-  });
-});
-
-describe("generateCoverLetter", () => {
-  it("includes match analysis sections when a match is provided", async () => {
-    await generateCoverLetter(baseJob, baseResume, {
+describe("buildCoverLetterPrompt", () => {
+  it("includes match analysis sections when a match is provided", () => {
+    const prompt = buildCoverLetterPrompt(baseJob, baseResume, {
       score: 82,
       strengths: ["React expertise", "TypeScript depth"],
       gaps: ["Limited GraphQL experience"],
     });
-    const prompt = generateTextMock.mock.calls[0][0].prompt as string;
     expect(prompt).toContain("Fit score: 82/100");
     expect(prompt).toContain("Strengths to highlight:");
     expect(prompt).toContain("React expertise");
@@ -48,69 +42,28 @@ describe("generateCoverLetter", () => {
     expect(prompt).toContain("Limited GraphQL experience");
   });
 
-  it("falls back to no-match instruction when match is omitted", async () => {
-    await generateCoverLetter(baseJob, baseResume);
-    const prompt = generateTextMock.mock.calls[0][0].prompt as string;
+  it("falls back to no-match instruction when match is omitted", () => {
+    const prompt = buildCoverLetterPrompt(baseJob, baseResume);
     expect(prompt).toContain("No prior match analysis available");
     expect(prompt).not.toContain("Fit score:");
   });
 
-  it("renders job brief sections from the job input", async () => {
-    await generateCoverLetter(baseJob, baseResume);
-    const prompt = generateTextMock.mock.calls[0][0].prompt as string;
+  it("renders job brief sections from the job input", () => {
+    const prompt = buildCoverLetterPrompt(baseJob, baseResume);
     expect(prompt).toContain("Title: Senior Frontend Engineer");
     expect(prompt).toContain("Company: Acme");
     expect(prompt).toContain("Required skills: TypeScript, React");
     expect(prompt).toContain("Engineer with React and TS background.");
   });
 
-  it("truncates resume.rawText at 18000 chars", async () => {
+  it("truncates resume.rawText at 18000 chars", () => {
     const longResume = { rawText: "x".repeat(20000) };
-    await generateCoverLetter(baseJob, longResume);
-    const prompt = generateTextMock.mock.calls[0][0].prompt as string;
+    const prompt = buildCoverLetterPrompt(baseJob, longResume);
     expect(prompt.includes("x".repeat(18000))).toBe(true);
     expect(prompt.includes("x".repeat(18001))).toBe(false);
   });
 
-  it("normalizes usage when token fields are missing", async () => {
-    generateTextMock.mockResolvedValueOnce({ text: "letter", usage: {} });
-    const { usage } = await generateCoverLetter(baseJob, baseResume);
-    expect(usage).toEqual({ inputTokens: 0, outputTokens: 0 });
-  });
-
-  it("trims the returned draft", async () => {
-    generateTextMock.mockResolvedValueOnce({
-      text: "  hello there  \n",
-      usage: { inputTokens: 1, outputTokens: 1 },
-    });
-    const { draft } = await generateCoverLetter(baseJob, baseResume);
-    expect(draft).toBe("hello there");
-  });
-
-  it("rethrows a friendly timeout error when the SDK aborts", async () => {
-    generateTextMock.mockRejectedValueOnce(
-      new DOMException("aborted", "TimeoutError")
-    );
-    await expect(generateCoverLetter(baseJob, baseResume)).rejects.toThrow(
-      /Cover letter generation timed out after \d+s/
-    );
-  });
-
-  it("passes an abortSignal to the SDK", async () => {
-    await generateCoverLetter(baseJob, baseResume);
-    const args = generateTextMock.mock.calls[0][0];
-    expect(args.abortSignal).toBeInstanceOf(AbortSignal);
-  });
-
-  it("lets non-abort errors bubble up unchanged", async () => {
-    const sdkError = new Error("rate limited");
-    generateTextMock.mockRejectedValueOnce(sdkError);
-    await expect(generateCoverLetter(baseJob, baseResume)).rejects.toBe(
-      sdkError
-    );
-  });
-
-  it("omits optional brief fields when they are absent", async () => {
+  it("omits optional brief fields when they are absent", () => {
     const sparseJob = {
       ...baseJob,
       location: null,
@@ -119,12 +72,42 @@ describe("generateCoverLetter", () => {
       niceToHaveSkills: [],
       responsibilities: [],
     };
-    await generateCoverLetter(sparseJob, baseResume);
-    const prompt = generateTextMock.mock.calls[0][0].prompt as string;
+    const prompt = buildCoverLetterPrompt(sparseJob, baseResume);
     expect(prompt).not.toContain("Location:");
     expect(prompt).not.toContain("Work mode:");
     expect(prompt).not.toContain("Seniority:");
     expect(prompt).not.toContain("Nice-to-have skills:");
     expect(prompt).not.toContain("Responsibilities:");
+  });
+});
+
+describe("streamCoverLetter", () => {
+  beforeEach(() => {
+    streamTextMock.mockReset();
+    streamTextMock.mockReturnValue({ stream: "fake" });
+  });
+
+  it("forwards the built prompt, an abortSignal, and the callbacks to streamText", () => {
+    const onFinish = vi.fn();
+    const onError = vi.fn();
+    streamCoverLetter(baseJob, baseResume, undefined, { onFinish, onError });
+    const args = streamTextMock.mock.calls[0][0];
+    expect(args.prompt).toBe(buildCoverLetterPrompt(baseJob, baseResume));
+    expect(args.abortSignal).toBeInstanceOf(AbortSignal);
+    expect(args.onFinish).toBe(onFinish);
+    expect(args.onError).toBe(onError);
+  });
+
+  it("returns whatever streamText returns", () => {
+    const fake = { textStream: [], toTextStreamResponse: vi.fn() };
+    streamTextMock.mockReturnValueOnce(fake);
+    expect(streamCoverLetter(baseJob, baseResume)).toBe(fake);
+  });
+
+  it("works without callbacks", () => {
+    streamCoverLetter(baseJob, baseResume);
+    const args = streamTextMock.mock.calls[0][0];
+    expect(args.onFinish).toBeUndefined();
+    expect(args.onError).toBeUndefined();
   });
 });

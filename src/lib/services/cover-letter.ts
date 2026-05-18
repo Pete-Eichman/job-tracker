@@ -1,16 +1,11 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { generateText } from "ai";
+import { streamText, type StreamTextOnFinishCallback, type StreamTextOnErrorCallback } from "ai";
 import type {
   JobModel,
   ResumeModel,
   MatchModel,
 } from "@/generated/prisma/models";
-import { TIMEOUTS, isAbortLike, timeoutError } from "@/lib/timeouts";
-
-export type CoverLetterUsage = {
-  inputTokens: number;
-  outputTokens: number;
-};
+import { TIMEOUTS } from "@/lib/timeouts";
 
 type JobForLetter = Pick<
   JobModel,
@@ -51,11 +46,11 @@ function buildJobBrief(job: JobForLetter): string {
     .join("\n");
 }
 
-export async function generateCoverLetter(
+export function buildCoverLetterPrompt(
   job: JobForLetter,
   resume: ResumeForLetter,
   match?: MatchForLetter
-): Promise<{ draft: string; usage: CoverLetterUsage }> {
+): string {
   const matchBrief = match
     ? [
         `Fit score: ${match.score}/100`,
@@ -70,7 +65,7 @@ export async function generateCoverLetter(
         .join("\n")
     : "No prior match analysis available. Identify 2-3 strong overlaps between the resume and the job yourself.";
 
-  const prompt = `You are drafting a cover letter for a job application. Write the letter body only — no subject line, no "Dear Hiring Manager", no signature, no markdown formatting. Output plain prose with paragraph breaks.
+  return `You are drafting a cover letter for a job application. Write the letter body only — no subject line, no "Dear Hiring Manager", no signature, no markdown formatting. Output plain prose with paragraph breaks.
 
 Requirements:
 - 250-400 words.
@@ -88,25 +83,22 @@ ${matchBrief}
 
 === CANDIDATE RESUME ===
 ${resume.rawText.slice(0, RESUME_CHAR_LIMIT)}`;
+}
 
-  try {
-    const { text, usage } = await generateText({
-      model: anthropic("claude-sonnet-4-6"),
-      prompt,
-      abortSignal: AbortSignal.timeout(TIMEOUTS.coverLetter),
-    });
-
-    return {
-      draft: text.trim(),
-      usage: {
-        inputTokens: usage.inputTokens ?? 0,
-        outputTokens: usage.outputTokens ?? 0,
-      },
-    };
-  } catch (err) {
-    if (isAbortLike(err)) {
-      throw timeoutError("Cover letter generation", TIMEOUTS.coverLetter);
-    }
-    throw err;
+export function streamCoverLetter(
+  job: JobForLetter,
+  resume: ResumeForLetter,
+  match?: MatchForLetter,
+  callbacks?: {
+    onFinish?: StreamTextOnFinishCallback<Record<string, never>>;
+    onError?: StreamTextOnErrorCallback;
   }
+) {
+  return streamText({
+    model: anthropic("claude-sonnet-4-6"),
+    prompt: buildCoverLetterPrompt(job, resume, match),
+    abortSignal: AbortSignal.timeout(TIMEOUTS.coverLetter),
+    onFinish: callbacks?.onFinish,
+    onError: callbacks?.onError,
+  });
 }
