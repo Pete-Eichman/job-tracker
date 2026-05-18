@@ -1,3 +1,7 @@
+// Per-million-token rates in cents (USD). Anthropic pricing changes over
+// time and varies by region/contract — VERIFY against the official pricing
+// page (https://www.anthropic.com/pricing) before trusting the reported
+// spend. Numbers here are estimates as of the commit date.
 const RATES_PER_M_TOKENS_CENTS: Record<
   string,
   { input: number; output: number }
