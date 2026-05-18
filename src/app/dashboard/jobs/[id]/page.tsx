@@ -4,8 +4,10 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { rescoreJobAction } from "@/app/actions/score-job";
 import { deleteCoverLetterAction } from "@/app/actions/cover-letter";
+import { updateJobAction } from "@/app/actions/update-job";
 import { SubmitButton } from "@/components/SubmitButton";
 import { CoverLetterGenerator } from "./CoverLetterGenerator";
+import { JOB_STATUS_VALUES, statusLabel } from "@/lib/job-status";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -50,18 +52,13 @@ export default async function JobDetailPage({
         </Link>
 
         <div className="space-y-2">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold">{job.title}</h1>
-              <p className="text-gray-600">
-                {job.company}
-                {job.location ? ` · ${job.location}` : ""}
-                {job.workMode ? ` · ${job.workMode}` : ""}
-              </p>
-            </div>
-            <span className="text-xs px-2 py-1 bg-gray-100 rounded-full shrink-0">
-              {job.status}
-            </span>
+          <div>
+            <h1 className="text-2xl font-semibold">{job.title}</h1>
+            <p className="text-gray-600">
+              {job.company}
+              {job.location ? ` · ${job.location}` : ""}
+              {job.workMode ? ` · ${job.workMode}` : ""}
+            </p>
           </div>
           {(job.salaryMin || job.salaryMax) && (
             <p className="text-sm text-gray-600">
@@ -84,6 +81,67 @@ export default async function JobDetailPage({
             </a>
           )}
         </div>
+
+        <section className="border rounded-lg p-4 space-y-4">
+          <h2 className="font-medium">Application tracking</h2>
+          <form action={updateJobAction} className="space-y-4">
+            <input type="hidden" name="jobId" value={job.id} />
+            <div className="grid sm:grid-cols-2 gap-4">
+              <label className="space-y-1 block">
+                <span className="text-sm font-medium">Status</span>
+                <select
+                  name="status"
+                  defaultValue={job.status}
+                  className="w-full border rounded-md px-3 py-2 text-sm bg-white"
+                >
+                  {JOB_STATUS_VALUES.map((s) => (
+                    <option key={s} value={s}>
+                      {statusLabel(s)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="space-y-1 block">
+                <span className="text-sm font-medium">Applied on</span>
+                <input
+                  type="date"
+                  name="appliedAt"
+                  defaultValue={
+                    job.appliedAt
+                      ? job.appliedAt.toISOString().slice(0, 10)
+                      : ""
+                  }
+                  className="w-full border rounded-md px-3 py-2 text-sm bg-white"
+                />
+                <span className="text-xs text-gray-500 block">
+                  Auto-set to today when you first move past Saved.
+                </span>
+              </label>
+            </div>
+            <label className="space-y-1 block">
+              <span className="text-sm font-medium">Notes</span>
+              <textarea
+                name="notes"
+                rows={4}
+                maxLength={10_000}
+                defaultValue={job.notes ?? ""}
+                placeholder="Recruiter, follow-ups, interview prep, etc."
+                className="w-full border rounded-md px-3 py-2 text-sm bg-white"
+              />
+            </label>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs text-gray-400">
+                Last updated {job.updatedAt.toLocaleString()}
+              </p>
+              <SubmitButton
+                className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                pendingLabel="Saving…"
+              >
+                Save
+              </SubmitButton>
+            </div>
+          </form>
+        </section>
 
         <section className="border rounded-lg p-4 space-y-4">
           <div className="flex items-center justify-between">
