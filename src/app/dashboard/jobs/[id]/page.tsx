@@ -3,11 +3,9 @@ import { prisma } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { rescoreJobAction } from "@/app/actions/score-job";
-import {
-  generateCoverLetterAction,
-  deleteCoverLetterAction,
-} from "@/app/actions/cover-letter";
+import { deleteCoverLetterAction } from "@/app/actions/cover-letter";
 import { SubmitButton } from "@/components/SubmitButton";
+import { CoverLetterGenerator } from "./CoverLetterGenerator";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -172,15 +170,10 @@ export default async function JobDetailPage({
           <div className="flex items-center justify-between">
             <h2 className="font-medium">Cover letters</h2>
             {defaultResume ? (
-              <form action={generateCoverLetterAction}>
-                <input type="hidden" name="jobId" value={job.id} />
-                <SubmitButton
-                  className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  pendingLabel="Drafting…"
-                >
-                  {coverLetters.length === 0 ? "Generate" : "Regenerate"}
-                </SubmitButton>
-              </form>
+              <CoverLetterGenerator
+                jobId={job.id}
+                hasExisting={coverLetters.length > 0}
+              />
             ) : (
               <Link
                 href="/dashboard/resumes"
