@@ -6,19 +6,12 @@ import { prisma } from "@/lib/db";
 import { parseFormData } from "@/lib/forms";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { JOB_STATUS_VALUES } from "@/lib/job-status";
+import type { JobStatus } from "@/generated/prisma/enums";
 
 const UpdateStatusSchema = z.object({
   jobId: z.string().min(1),
-  status: z.enum([
-    "SAVED",
-    "APPLIED",
-    "PHONE_SCREEN",
-    "TECHNICAL",
-    "ONSITE",
-    "OFFER",
-    "REJECTED",
-    "WITHDRAWN",
-  ]),
+  status: z.enum(JOB_STATUS_VALUES as [JobStatus, ...JobStatus[]]),
 });
 
 export async function updateStatusAction(formData: FormData): Promise<void> {
@@ -52,16 +45,7 @@ export async function updateStatusAction(formData: FormData): Promise<void> {
 
 const UpdateJobSchema = z.object({
   jobId: z.string().min(1),
-  status: z.enum([
-    "SAVED",
-    "APPLIED",
-    "PHONE_SCREEN",
-    "TECHNICAL",
-    "ONSITE",
-    "OFFER",
-    "REJECTED",
-    "WITHDRAWN",
-  ]),
+  status: z.enum(JOB_STATUS_VALUES as [JobStatus, ...JobStatus[]]),
   notes: z.string().max(10_000).optional().default(""),
   appliedAt: z.string().optional().default(""),
 });

@@ -3,6 +3,7 @@ import { generateObject } from "ai";
 import { z } from "zod";
 import type { JobModel, ResumeModel } from "@/generated/prisma/models";
 import { TIMEOUTS, isAbortLike, timeoutError } from "@/lib/timeouts";
+import { AI_MODELS } from "@/lib/ai-models";
 
 const MatchSchema = z.object({
   score: z
@@ -106,7 +107,7 @@ ${resume.rawText}`;
 
   try {
     const { object, usage } = await generateObject({
-      model: anthropic("claude-sonnet-4-6"),
+      model: anthropic(AI_MODELS.default),
       schema: MatchSchema,
       prompt,
       abortSignal: AbortSignal.timeout(TIMEOUTS.matchScore),

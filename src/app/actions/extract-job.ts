@@ -7,6 +7,7 @@ import { fetchPageText, extractJobFromText } from "@/lib/services/job-extraction
 import { scoreJob } from "@/app/actions/score-job";
 import { parseFormData } from "@/lib/forms";
 import { computeCostCents } from "@/lib/pricing";
+import { AI_MODELS } from "@/lib/ai-models";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -38,11 +39,11 @@ export async function extractAndSaveJob(formData: FormData) {
       userId,
       jobId: job.id,
       operation: "job_extract",
-      model: "claude-sonnet-4-6",
+      model: AI_MODELS.default,
       inputTokens: usage.inputTokens,
       outputTokens: usage.outputTokens,
       costCents: computeCostCents(
-        "claude-sonnet-4-6",
+        AI_MODELS.default,
         usage.inputTokens,
         usage.outputTokens
       ),
