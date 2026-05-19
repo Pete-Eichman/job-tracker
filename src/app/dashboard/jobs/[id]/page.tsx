@@ -18,6 +18,7 @@ import {
   stalenessTextColor,
 } from "@/lib/staleness";
 import { pickResumeId } from "@/lib/job-resume";
+import { buildMatchComparison } from "@/lib/match-comparison";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -45,26 +46,42 @@ export default async function JobDetailPage({
   const selectedResumeId = pickResumeId(resumes, requestedResume);
   const selectedResume = resumes.find((r) => r.id === selectedResumeId) ?? null;
 
-  const job = await prisma.job.findFirst({
-    where: { id, userId: session.user.id },
-    include: {
-      matches: selectedResumeId
-        ? {
-            where: { resumeId: selectedResumeId },
-            take: 1,
-            orderBy: { createdAt: "desc" },
-          }
-        : { take: 0 },
-      coverLetters: {
-        orderBy: { createdAt: "desc" },
-        include: { resume: { select: { id: true, title: true } } },
+  const [job, allMatches] = await Promise.all([
+    prisma.job.findFirst({
+      where: { id, userId: session.user.id },
+      include: {
+        matches: selectedResumeId
+          ? {
+              where: { resumeId: selectedResumeId },
+              take: 1,
+              orderBy: { createdAt: "desc" },
+            }
+          : { take: 0 },
+        coverLetters: {
+          orderBy: { createdAt: "desc" },
+          include: { resume: { select: { id: true, title: true } } },
+        },
       },
-    },
-  });
+    }),
+    prisma.match.findMany({
+      where: { jobId: id, resume: { userId: session.user.id } },
+      orderBy: { createdAt: "desc" },
+      select: {
+        score: true,
+        strengths: true,
+        gaps: true,
+        resumeId: true,
+        resume: {
+          select: { id: true, title: true, isDefault: true },
+        },
+      },
+    }),
+  ]);
   if (!job) notFound();
 
   const match = job.matches[0];
   const coverLetters = job.coverLetters;
+  const comparison = buildMatchComparison(allMatches);
 
   return (
     <div className="min-h-screen p-8">
@@ -199,6 +216,58 @@ export default async function JobDetailPage({
                   </Link>
                 );
               })}
+            </div>
+          </section>
+        )}
+
+        {comparison.length >= 2 && (
+          <section className="border rounded-lg p-4 space-y-3">
+            <h2 className="font-medium">Compare matches</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs text-gray-500 text-left">
+                    <th className="font-normal pb-2">Resume</th>
+                    <th className="font-normal pb-2">Score</th>
+                    <th className="font-normal pb-2">Strengths</th>
+                    <th className="font-normal pb-2">Gaps</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {comparison.map((row) => {
+                    const selected = row.resumeId === selectedResumeId;
+                    return (
+                      <tr
+                        key={row.resumeId}
+                        className={selected ? "bg-gray-50" : ""}
+                      >
+                        <td className="py-2 pr-3">
+                          <Link
+                            href={`/dashboard/jobs/${job.id}?resume=${row.resumeId}`}
+                            className={
+                              selected ? "font-medium" : "hover:underline"
+                            }
+                          >
+                            {row.resumeTitle}
+                            {row.isDefault ? " ★" : ""}
+                          </Link>
+                        </td>
+                        <td className="py-2 pr-3">
+                          <span
+                            className={`px-2 py-0.5 rounded ${scoreColor(row.score)}`}
+                          >
+                            {row.score}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-3 text-gray-700">
+                          {row.strengthsCount}
+                        </td>
+                        <td className="py-2 text-gray-700">{row.gapsCount}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </section>
         )}
