@@ -7,6 +7,49 @@ import { parseFormData } from "@/lib/forms";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+const UpdateStatusSchema = z.object({
+  jobId: z.string().min(1),
+  status: z.enum([
+    "SAVED",
+    "APPLIED",
+    "PHONE_SCREEN",
+    "TECHNICAL",
+    "ONSITE",
+    "OFFER",
+    "REJECTED",
+    "WITHDRAWN",
+  ]),
+});
+
+export async function updateStatusAction(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+  const userId = session.user.id;
+
+  const parsed = parseFormData(formData, UpdateStatusSchema);
+
+  const existing = await prisma.job.findFirst({
+    where: { id: parsed.jobId, userId },
+    select: { id: true, status: true, appliedAt: true },
+  });
+  if (!existing) throw new Error("Job not found");
+
+  const data: { status: typeof parsed.status; appliedAt?: Date } = {
+    status: parsed.status,
+  };
+  if (
+    existing.appliedAt === null &&
+    existing.status === "SAVED" &&
+    parsed.status !== "SAVED"
+  ) {
+    data.appliedAt = new Date();
+  }
+
+  await prisma.job.update({ where: { id: parsed.jobId }, data });
+  revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/jobs/${parsed.jobId}`);
+}
+
 const UpdateJobSchema = z.object({
   jobId: z.string().min(1),
   status: z.enum([

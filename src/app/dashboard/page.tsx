@@ -5,7 +5,7 @@ import Link from "next/link";
 import { extractAndSaveJob } from "@/app/actions/extract-job";
 import { SubmitButton } from "@/components/SubmitButton";
 import { formatSpend, formatTokens } from "@/lib/pricing";
-import { statusColor, statusLabel } from "@/lib/job-status";
+import { StatusSelect } from "@/components/StatusSelect";
 import {
   parseJobFilter,
   activePreset,
@@ -311,11 +311,10 @@ export default async function DashboardPage({
                     >
                       {match ? match.score : "—"}
                     </span>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${statusColor(job.status)}`}
-                    >
-                      {statusLabel(job.status)}
-                    </span>
+                    <StatusSelect
+                      jobId={job.id}
+                      currentStatus={job.status}
+                    />
                   </div>
                 </div>
                 {job.requiredSkills.length > 0 && (
