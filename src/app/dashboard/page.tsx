@@ -24,6 +24,7 @@ import {
   formatRelativeDays,
   stalenessTextColor,
 } from "@/lib/staleness";
+import { needsAttention } from "@/lib/follow-up";
 import {
   parseJobSort,
   prismaOrderBy,
@@ -46,6 +47,7 @@ const PRESET_LABELS: Record<FilterPreset, string> = {
   saved: "Saved",
   offers: "Offers",
   closed: "Closed",
+  attention: "Needs attention",
 };
 
 export default async function DashboardPage({
@@ -56,6 +58,7 @@ export default async function DashboardPage({
     q?: string | string[];
     sort?: string | string[];
     archived?: string | string[];
+    attention?: string | string[];
   }>;
 }) {
   const session = await auth();
@@ -88,12 +91,15 @@ export default async function DashboardPage({
   ]);
 
   const now = new Date();
-  const jobs =
+  const sorted =
     sort === "stale"
       ? [...jobsRaw].sort((a, b) => compareByStale(a, b, now))
       : sort === "score"
         ? [...jobsRaw].sort(compareByScore)
         : jobsRaw;
+  const jobs = filter.attention
+    ? sorted.filter((j) => needsAttention(j.status, j.updatedAt, now))
+    : sorted;
 
   const isFiltered = active !== "all" || filter.query !== "";
 
@@ -175,7 +181,13 @@ export default async function DashboardPage({
           <div className="flex flex-wrap gap-2 items-center text-xs">
             <span className="text-gray-500">View:</span>
             <Link
-              href={viewHref(false, filter.statuses, filter.query, sort)}
+              href={viewHref(
+                false,
+                filter.statuses,
+                filter.query,
+                sort,
+                filter.attention
+              )}
               className={`px-3 py-1 rounded-full border ${
                 !filter.archived
                   ? "bg-black text-white border-black"
@@ -185,7 +197,13 @@ export default async function DashboardPage({
               Active
             </Link>
             <Link
-              href={viewHref(true, filter.statuses, filter.query, sort)}
+              href={viewHref(
+                true,
+                filter.statuses,
+                filter.query,
+                sort,
+                filter.attention
+              )}
               className={`px-3 py-1 rounded-full border ${
                 filter.archived
                   ? "bg-black text-white border-black"
@@ -224,7 +242,8 @@ export default async function DashboardPage({
                     value,
                     filter.statuses,
                     filter.query,
-                    filter.archived
+                    filter.archived,
+                    filter.attention
                   )}
                   className={`px-2 py-1 rounded-full border ${
                     isActive
@@ -243,6 +262,9 @@ export default async function DashboardPage({
             {filter.archived && (
               <input type="hidden" name="archived" value="1" />
             )}
+            {filter.attention && (
+              <input type="hidden" name="attention" value="1" />
+            )}
             <input
               name="q"
               type="search"
@@ -258,7 +280,13 @@ export default async function DashboardPage({
             </button>
             {filter.query !== "" && (
               <Link
-                href={sortHref(sort, filter.statuses, "", filter.archived)}
+                href={sortHref(
+                  sort,
+                  filter.statuses,
+                  "",
+                  filter.archived,
+                  filter.attention
+                )}
                 className="px-3 py-2 border rounded-md text-sm text-gray-600 hover:bg-gray-50"
                 title="Clear search"
               >
@@ -269,15 +297,26 @@ export default async function DashboardPage({
         </div>
 
         <div className="space-y-4">
-          {jobs.length === 0 && !isFiltered && !filter.archived && (
+          {jobs.length === 0 && filter.attention && (
             <p className="text-sm text-gray-500">
-              No jobs saved yet. Paste a URL above to get started.
+              Nothing needs follow-up right now. Nice work.
             </p>
           )}
-          {jobs.length === 0 && !isFiltered && filter.archived && (
-            <p className="text-sm text-gray-500">No archived jobs.</p>
-          )}
-          {jobs.length === 0 && isFiltered && (
+          {jobs.length === 0 &&
+            !filter.attention &&
+            !isFiltered &&
+            !filter.archived && (
+              <p className="text-sm text-gray-500">
+                No jobs saved yet. Paste a URL above to get started.
+              </p>
+            )}
+          {jobs.length === 0 &&
+            !filter.attention &&
+            !isFiltered &&
+            filter.archived && (
+              <p className="text-sm text-gray-500">No archived jobs.</p>
+            )}
+          {jobs.length === 0 && !filter.attention && isFiltered && (
             <p className="text-sm text-gray-500">
               No jobs match this filter.{" "}
               <Link
@@ -313,6 +352,14 @@ export default async function DashboardPage({
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
+                    {needsAttention(job.status, job.updatedAt, now) && (
+                      <span
+                        className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 font-medium"
+                        title="This job hasn't been touched in a while"
+                      >
+                        Follow up
+                      </span>
+                    )}
                     <span
                       className={`text-sm font-semibold px-2 py-1 rounded-md ${
                         match ? scoreColor(match.score) : "text-gray-400 bg-gray-50"

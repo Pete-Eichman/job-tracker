@@ -7,6 +7,7 @@ export type JobFilter = {
   statuses: JobStatus[];
   query: string;
   archived: boolean;
+  attention: boolean;
 };
 
 export const FILTER_PRESETS = {
@@ -15,6 +16,7 @@ export const FILTER_PRESETS = {
   saved: ["SAVED"] as JobStatus[],
   offers: ["OFFER"] as JobStatus[],
   closed: ["REJECTED", "WITHDRAWN"] as JobStatus[],
+  attention: [] as JobStatus[],
 } as const;
 
 export type FilterPreset = keyof typeof FILTER_PRESETS;
@@ -29,6 +31,7 @@ export function parseJobFilter(searchParams: {
   status?: string | string[];
   q?: string | string[];
   archived?: string | string[];
+  attention?: string | string[];
 }): JobFilter {
   const statuses = firstString(searchParams.status)
     .split(",")
@@ -38,15 +41,18 @@ export function parseJobFilter(searchParams: {
     statuses,
     query: firstString(searchParams.q).trim(),
     archived: firstString(searchParams.archived) === "1",
+    attention: firstString(searchParams.attention) === "1",
   };
 }
 
 export function activePreset(filter: JobFilter): FilterPreset | null {
+  if (filter.attention) return "attention";
   const cur = new Set(filter.statuses);
   for (const [name, statuses] of Object.entries(FILTER_PRESETS) as [
     FilterPreset,
     JobStatus[],
   ][]) {
+    if (name === "attention") continue;
     if (cur.size === statuses.length && statuses.every((s) => cur.has(s))) {
       return name;
     }
@@ -61,8 +67,12 @@ export function presetHref(
   archived = false
 ): string {
   const params = new URLSearchParams();
-  const statuses = FILTER_PRESETS[preset];
-  if (statuses.length > 0) params.set("status", statuses.join(","));
+  if (preset === "attention") {
+    params.set("attention", "1");
+  } else {
+    const statuses = FILTER_PRESETS[preset];
+    if (statuses.length > 0) params.set("status", statuses.join(","));
+  }
   if (query) params.set("q", query);
   if (sort !== "created") params.set("sort", sort);
   if (archived) params.set("archived", "1");
@@ -74,13 +84,15 @@ export function viewHref(
   archived: boolean,
   statuses: JobStatus[],
   query: string,
-  sort: JobSort
+  sort: JobSort,
+  attention = false
 ): string {
   const params = new URLSearchParams();
   if (statuses.length > 0) params.set("status", statuses.join(","));
   if (query) params.set("q", query);
   if (sort !== "created") params.set("sort", sort);
   if (archived) params.set("archived", "1");
+  if (attention) params.set("attention", "1");
   const qs = params.toString();
   return qs ? `/dashboard?${qs}` : "/dashboard";
 }

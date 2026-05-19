@@ -173,6 +173,21 @@ describe("sortHref", () => {
   it("omits archived when false", () => {
     expect(sortHref("stale", [], "", false)).toBe("/dashboard?sort=stale");
   });
+
+  it("emits attention=1 when attention is true", () => {
+    expect(sortHref("created", [], "", false, true)).toBe(
+      "/dashboard?attention=1"
+    );
+  });
+
+  it("preserves attention alongside other params", () => {
+    const href = sortHref("stale", ["APPLIED"], "Acme", true, true);
+    expect(href).toContain("status=APPLIED");
+    expect(href).toContain("q=Acme");
+    expect(href).toContain("sort=stale");
+    expect(href).toContain("archived=1");
+    expect(href).toContain("attention=1");
+  });
 });
 
 describe("sortLabel", () => {
