@@ -13,6 +13,7 @@ describe("parseJobFilter", () => {
       statuses: [],
       query: "",
       archived: false,
+      attention: false,
     });
   });
 
@@ -21,6 +22,7 @@ describe("parseJobFilter", () => {
       statuses: ["APPLIED"],
       query: "",
       archived: false,
+      attention: false,
     });
   });
 
@@ -29,6 +31,7 @@ describe("parseJobFilter", () => {
       statuses: ["APPLIED", "PHONE_SCREEN"],
       query: "",
       archived: false,
+      attention: false,
     });
   });
 
@@ -37,6 +40,7 @@ describe("parseJobFilter", () => {
       statuses: ["APPLIED"],
       query: "",
       archived: false,
+      attention: false,
     });
   });
 
@@ -45,6 +49,7 @@ describe("parseJobFilter", () => {
       statuses: ["APPLIED"],
       query: "",
       archived: false,
+      attention: false,
     });
   });
 
@@ -53,6 +58,7 @@ describe("parseJobFilter", () => {
       statuses: [],
       query: "Acme",
       archived: false,
+      attention: false,
     });
   });
 
@@ -61,6 +67,7 @@ describe("parseJobFilter", () => {
       statuses: ["APPLIED"],
       query: "",
       archived: false,
+      attention: false,
     });
   });
 
@@ -83,18 +90,46 @@ describe("parseJobFilter", () => {
   it("uses the first element of an archived array param", () => {
     expect(parseJobFilter({ archived: ["1", "0"] }).archived).toBe(true);
   });
+
+  it("treats attention='1' as true", () => {
+    expect(parseJobFilter({ attention: "1" }).attention).toBe(true);
+  });
+
+  it("treats missing attention as false", () => {
+    expect(parseJobFilter({}).attention).toBe(false);
+  });
+
+  it("treats attention='0' / 'true' / 'yes' as false (only '1' counts)", () => {
+    expect(parseJobFilter({ attention: "0" }).attention).toBe(false);
+    expect(parseJobFilter({ attention: "true" }).attention).toBe(false);
+    expect(parseJobFilter({ attention: "yes" }).attention).toBe(false);
+  });
+
+  it("uses the first element of an attention array param", () => {
+    expect(parseJobFilter({ attention: ["1", "0"] }).attention).toBe(true);
+  });
 });
 
 describe("activePreset", () => {
   it("returns 'all' for an empty filter", () => {
     expect(
-      activePreset({ statuses: [], query: "", archived: false })
+      activePreset({
+        statuses: [],
+        query: "",
+        archived: false,
+        attention: false,
+      })
     ).toBe("all");
   });
 
   it("returns 'saved' for SAVED only", () => {
     expect(
-      activePreset({ statuses: ["SAVED"], query: "", archived: false })
+      activePreset({
+        statuses: ["SAVED"],
+        query: "",
+        archived: false,
+        attention: false,
+      })
     ).toBe("saved");
   });
 
@@ -104,13 +139,19 @@ describe("activePreset", () => {
         statuses: ["APPLIED", "PHONE_SCREEN", "TECHNICAL", "ONSITE"],
         query: "",
         archived: false,
+        attention: false,
       })
     ).toBe("active");
   });
 
   it("returns 'offers' for OFFER only", () => {
     expect(
-      activePreset({ statuses: ["OFFER"], query: "", archived: false })
+      activePreset({
+        statuses: ["OFFER"],
+        query: "",
+        archived: false,
+        attention: false,
+      })
     ).toBe("offers");
   });
 
@@ -120,13 +161,19 @@ describe("activePreset", () => {
         statuses: ["REJECTED", "WITHDRAWN"],
         query: "",
         archived: false,
+        attention: false,
       })
     ).toBe("closed");
   });
 
   it("returns null for APPLIED alone (not a preset)", () => {
     expect(
-      activePreset({ statuses: ["APPLIED"], query: "", archived: false })
+      activePreset({
+        statuses: ["APPLIED"],
+        query: "",
+        archived: false,
+        attention: false,
+      })
     ).toBeNull();
   });
 
@@ -136,8 +183,31 @@ describe("activePreset", () => {
         statuses: ["APPLIED", "PHONE_SCREEN", "TECHNICAL", "ONSITE", "OFFER"],
         query: "",
         archived: false,
+        attention: false,
       })
     ).toBeNull();
+  });
+
+  it("returns 'attention' when filter.attention is true (no statuses)", () => {
+    expect(
+      activePreset({
+        statuses: [],
+        query: "",
+        archived: false,
+        attention: true,
+      })
+    ).toBe("attention");
+  });
+
+  it("returns 'attention' even if statuses match another preset (priority)", () => {
+    expect(
+      activePreset({
+        statuses: ["SAVED"],
+        query: "",
+        archived: false,
+        attention: true,
+      })
+    ).toBe("attention");
   });
 });
 
@@ -197,6 +267,19 @@ describe("presetHref", () => {
     expect(href).toContain("sort=stale");
     expect(href).toContain("archived=1");
   });
+
+  it("emits attention=1 for the 'attention' preset without status", () => {
+    expect(presetHref("attention", "")).toBe("/dashboard?attention=1");
+  });
+
+  it("combines attention preset with query, sort, and archived", () => {
+    const href = presetHref("attention", "Acme", "stale", true);
+    expect(href).toContain("attention=1");
+    expect(href).toContain("q=Acme");
+    expect(href).toContain("sort=stale");
+    expect(href).toContain("archived=1");
+    expect(href).not.toContain("status=");
+  });
 });
 
 describe("viewHref", () => {
@@ -223,12 +306,37 @@ describe("viewHref", () => {
     expect(href).toContain("sort=stale");
     expect(href).toContain("archived=1");
   });
+
+  it("emits attention=1 when attention is true", () => {
+    expect(viewHref(false, [], "", "created", true)).toBe(
+      "/dashboard?attention=1"
+    );
+  });
+
+  it("omits attention when false (default)", () => {
+    expect(viewHref(false, [], "", "created", false)).toBe("/dashboard");
+    expect(viewHref(false, [], "", "created")).toBe("/dashboard");
+  });
+
+  it("preserves all five dimensions together", () => {
+    const href = viewHref(true, ["APPLIED"], "Acme", "stale", true);
+    expect(href).toContain("status=APPLIED");
+    expect(href).toContain("q=Acme");
+    expect(href).toContain("sort=stale");
+    expect(href).toContain("archived=1");
+    expect(href).toContain("attention=1");
+  });
 });
 
 describe("jobWhereFromFilter", () => {
   it("scopes by userId and excludes archived rows by default", () => {
     expect(
-      jobWhereFromFilter("u1", { statuses: [], query: "", archived: false })
+      jobWhereFromFilter("u1", {
+        statuses: [],
+        query: "",
+        archived: false,
+        attention: false,
+      })
     ).toEqual({
       userId: "u1",
       archivedAt: null,
@@ -237,7 +345,12 @@ describe("jobWhereFromFilter", () => {
 
   it("scopes to archived rows when archived is true", () => {
     expect(
-      jobWhereFromFilter("u1", { statuses: [], query: "", archived: true })
+      jobWhereFromFilter("u1", {
+        statuses: [],
+        query: "",
+        archived: true,
+        attention: false,
+      })
     ).toEqual({
       userId: "u1",
       archivedAt: { not: null },
@@ -250,6 +363,7 @@ describe("jobWhereFromFilter", () => {
         statuses: ["APPLIED", "OFFER"],
         query: "",
         archived: false,
+        attention: false,
       })
     ).toEqual({
       userId: "u1",
@@ -260,7 +374,12 @@ describe("jobWhereFromFilter", () => {
 
   it("adds an OR clause matching title/company case-insensitively for a query", () => {
     expect(
-      jobWhereFromFilter("u1", { statuses: [], query: "Acme", archived: false })
+      jobWhereFromFilter("u1", {
+        statuses: [],
+        query: "Acme",
+        archived: false,
+        attention: false,
+      })
     ).toEqual({
       userId: "u1",
       archivedAt: null,
@@ -277,6 +396,7 @@ describe("jobWhereFromFilter", () => {
         statuses: ["REJECTED"],
         query: "Acme",
         archived: true,
+        attention: false,
       })
     ).toEqual({
       userId: "u1",
@@ -286,6 +406,20 @@ describe("jobWhereFromFilter", () => {
         { title: { contains: "Acme", mode: "insensitive" } },
         { company: { contains: "Acme", mode: "insensitive" } },
       ],
+    });
+  });
+
+  it("ignores filter.attention (date-based filter is applied in JS)", () => {
+    expect(
+      jobWhereFromFilter("u1", {
+        statuses: [],
+        query: "",
+        archived: false,
+        attention: true,
+      })
+    ).toEqual({
+      userId: "u1",
+      archivedAt: null,
     });
   });
 });
