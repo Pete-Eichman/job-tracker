@@ -125,6 +125,12 @@ export default async function DashboardPage({
             )}
           </div>
           <div className="flex items-center gap-2">
+            <a
+              href="/api/jobs/export"
+              className="px-4 py-2 border rounded-md text-sm hover:bg-gray-50"
+            >
+              Export CSV
+            </a>
             <Link
               href="/dashboard/resumes"
               className="px-4 py-2 border rounded-md text-sm hover:bg-gray-50"
