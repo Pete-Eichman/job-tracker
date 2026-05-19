@@ -159,6 +159,20 @@ describe("sortHref", () => {
     expect(href).toContain("q=Acme");
     expect(href).toContain("sort=stale");
   });
+
+  it("emits archived=1 alone when sort is default and only archived is set", () => {
+    expect(sortHref("created", [], "", true)).toBe("/dashboard?archived=1");
+  });
+
+  it("combines sort and archived params", () => {
+    const href = sortHref("stale", [], "", true);
+    expect(href).toContain("sort=stale");
+    expect(href).toContain("archived=1");
+  });
+
+  it("omits archived when false", () => {
+    expect(sortHref("stale", [], "", false)).toBe("/dashboard?sort=stale");
+  });
 });
 
 describe("sortLabel", () => {

@@ -73,12 +73,14 @@ export function compareByScore(a: JobRow, b: JobRow): number {
 export function sortHref(
   sort: JobSort,
   statuses: JobStatus[],
-  query: string
+  query: string,
+  archived = false
 ): string {
   const params = new URLSearchParams();
   if (statuses.length > 0) params.set("status", statuses.join(","));
   if (query) params.set("q", query);
   if (sort !== "created") params.set("sort", sort);
+  if (archived) params.set("archived", "1");
   const qs = params.toString();
   return qs ? `/dashboard?${qs}` : "/dashboard";
 }

@@ -54,6 +54,7 @@ model Job {
   status           JobStatus     @default(SAVED)
   notes            String?
   appliedAt        DateTime?
+  archivedAt       DateTime?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   matches          Match[]

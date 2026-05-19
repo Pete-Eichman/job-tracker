@@ -10,6 +10,7 @@ import {
   parseJobFilter,
   activePreset,
   presetHref,
+  viewHref,
   jobWhereFromFilter,
   FILTER_PRESETS,
   type FilterPreset,
@@ -50,6 +51,7 @@ export default async function DashboardPage({
     status?: string | string[];
     q?: string | string[];
     sort?: string | string[];
+    archived?: string | string[];
   }>;
 }) {
   const session = await auth();
@@ -160,13 +162,36 @@ export default async function DashboardPage({
         </form>
 
         <div className="space-y-3">
+          <div className="flex flex-wrap gap-2 items-center text-xs">
+            <span className="text-gray-500">View:</span>
+            <Link
+              href={viewHref(false, filter.statuses, filter.query, sort)}
+              className={`px-3 py-1 rounded-full border ${
+                !filter.archived
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+              }`}
+            >
+              Active
+            </Link>
+            <Link
+              href={viewHref(true, filter.statuses, filter.query, sort)}
+              className={`px-3 py-1 rounded-full border ${
+                filter.archived
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+              }`}
+            >
+              Archived
+            </Link>
+          </div>
           <div className="flex flex-wrap gap-2">
             {(Object.keys(FILTER_PRESETS) as FilterPreset[]).map((preset) => {
               const isActive = active === preset;
               return (
                 <Link
                   key={preset}
-                  href={presetHref(preset, filter.query, sort)}
+                  href={presetHref(preset, filter.query, sort, filter.archived)}
                   className={`text-xs px-3 py-1 rounded-full border ${
                     isActive
                       ? "bg-black text-white border-black"
@@ -185,7 +210,12 @@ export default async function DashboardPage({
               return (
                 <Link
                   key={value}
-                  href={sortHref(value, filter.statuses, filter.query)}
+                  href={sortHref(
+                    value,
+                    filter.statuses,
+                    filter.query,
+                    filter.archived
+                  )}
                   className={`px-2 py-1 rounded-full border ${
                     isActive
                       ? "bg-gray-800 text-white border-gray-800"
@@ -200,6 +230,9 @@ export default async function DashboardPage({
           <form action="/dashboard" className="flex gap-2">
             <input type="hidden" name="status" value={hiddenStatus} />
             <input type="hidden" name="sort" value={sort} />
+            {filter.archived && (
+              <input type="hidden" name="archived" value="1" />
+            )}
             <input
               name="q"
               type="search"
@@ -215,7 +248,7 @@ export default async function DashboardPage({
             </button>
             {filter.query !== "" && (
               <Link
-                href={sortHref(sort, filter.statuses, "")}
+                href={sortHref(sort, filter.statuses, "", filter.archived)}
                 className="px-3 py-2 border rounded-md text-sm text-gray-600 hover:bg-gray-50"
                 title="Clear search"
               >
@@ -226,15 +259,21 @@ export default async function DashboardPage({
         </div>
 
         <div className="space-y-4">
-          {jobs.length === 0 && !isFiltered && (
+          {jobs.length === 0 && !isFiltered && !filter.archived && (
             <p className="text-sm text-gray-500">
               No jobs saved yet. Paste a URL above to get started.
             </p>
           )}
+          {jobs.length === 0 && !isFiltered && filter.archived && (
+            <p className="text-sm text-gray-500">No archived jobs.</p>
+          )}
           {jobs.length === 0 && isFiltered && (
             <p className="text-sm text-gray-500">
               No jobs match this filter.{" "}
-              <Link href="/dashboard" className="underline">
+              <Link
+                href={viewHref(filter.archived, [], "", "created")}
+                className="underline"
+              >
                 Clear filters
               </Link>
               .
