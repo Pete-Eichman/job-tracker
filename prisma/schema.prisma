@@ -32,6 +32,8 @@ model Resume {
   createdAt    DateTime      @default(now())
   matches      Match[]
   coverLetters CoverLetter[]
+
+  @@index([userId])
 }
 
 model Job {
@@ -62,6 +64,7 @@ model Job {
   aiUsage          AiUsage[]
 
   @@index([userId, status])
+  @@index([userId, archivedAt])
 }
 
 model Match {

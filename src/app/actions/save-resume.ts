@@ -9,7 +9,11 @@ import { redirect } from "next/navigation";
 
 const SaveResumeSchema = z.object({
   title: z.string().trim().min(1, "Title is required"),
-  rawText: z.string().trim().min(1, "Resume text is required"),
+  rawText: z
+    .string()
+    .trim()
+    .min(1, "Resume text is required")
+    .max(50_000, "Resume too long — paste plain text only."),
 });
 
 const SetDefaultSchema = z.object({
@@ -55,8 +59,8 @@ export async function setDefaultResume(formData: FormData): Promise<void> {
       where: { userId, isDefault: true },
       data: { isDefault: false },
     }),
-    prisma.resume.update({
-      where: { id: resumeId },
+    prisma.resume.updateMany({
+      where: { id: resumeId, userId },
       data: { isDefault: true },
     }),
   ]);
