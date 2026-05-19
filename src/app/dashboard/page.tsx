@@ -7,6 +7,10 @@ import { SubmitButton } from "@/components/SubmitButton";
 import { formatSpend, formatTokens } from "@/lib/pricing";
 import { StatusSelect } from "@/components/StatusSelect";
 import {
+  archiveJobAction,
+  unarchiveJobAction,
+} from "@/app/actions/archive-job";
+import {
   parseJobFilter,
   activePreset,
   presetHref,
@@ -339,6 +343,21 @@ export default async function DashboardPage({
                     {job.sourceUrl}
                   </a>
                 )}
+                <div className="flex justify-end">
+                  <form
+                    action={
+                      filter.archived ? unarchiveJobAction : archiveJobAction
+                    }
+                  >
+                    <input type="hidden" name="jobId" value={job.id} />
+                    <button
+                      type="submit"
+                      className="text-xs text-gray-400 hover:text-gray-700"
+                    >
+                      {filter.archived ? "Unarchive" : "Archive"}
+                    </button>
+                  </form>
+                </div>
               </div>
             );
           })}
