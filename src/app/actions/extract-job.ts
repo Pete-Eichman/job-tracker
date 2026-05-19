@@ -36,6 +36,7 @@ export async function extractAndSaveJob(formData: FormData) {
   await prisma.aiUsage.create({
     data: {
       userId,
+      jobId: job.id,
       operation: "job_extract",
       model: "claude-sonnet-4-6",
       inputTokens: usage.inputTokens,

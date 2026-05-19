@@ -19,6 +19,7 @@ import {
 } from "@/lib/staleness";
 import { pickResumeId } from "@/lib/job-resume";
 import { buildMatchComparison } from "@/lib/match-comparison";
+import { formatSpend } from "@/lib/pricing";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-green-700 bg-green-50";
@@ -46,7 +47,7 @@ export default async function JobDetailPage({
   const selectedResumeId = pickResumeId(resumes, requestedResume);
   const selectedResume = resumes.find((r) => r.id === selectedResumeId) ?? null;
 
-  const [job, allMatches] = await Promise.all([
+  const [job, allMatches, aiSpend] = await Promise.all([
     prisma.job.findFirst({
       where: { id, userId: session.user.id },
       include: {
@@ -76,12 +77,19 @@ export default async function JobDetailPage({
         },
       },
     }),
+    prisma.aiUsage.aggregate({
+      where: { jobId: id, userId: session.user.id },
+      _sum: { costCents: true },
+      _count: true,
+    }),
   ]);
   if (!job) notFound();
 
   const match = job.matches[0];
   const coverLetters = job.coverLetters;
   const comparison = buildMatchComparison(allMatches);
+  const aiSpendCents = aiSpend._sum.costCents ?? 0;
+  const aiSpendCalls = aiSpend._count;
 
   return (
     <div className="min-h-screen p-8">
@@ -128,6 +136,12 @@ export default async function JobDetailPage({
             >
               {job.sourceUrl}
             </a>
+          )}
+          {aiSpendCalls > 0 && (
+            <p className="text-xs text-gray-500">
+              AI spend: {formatSpend(aiSpendCents)} across {aiSpendCalls} call
+              {aiSpendCalls === 1 ? "" : "s"}
+            </p>
           )}
         </div>
 

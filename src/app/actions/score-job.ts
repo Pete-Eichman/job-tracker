@@ -52,6 +52,7 @@ export async function scoreJob(jobId: string, resumeId?: string): Promise<void> 
   await prisma.aiUsage.create({
     data: {
       userId,
+      jobId,
       operation: "match_score",
       model: "claude-sonnet-4-6",
       inputTokens: usage.inputTokens,

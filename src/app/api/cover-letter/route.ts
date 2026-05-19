@@ -63,6 +63,7 @@ export async function POST(req: Request) {
       await prisma.aiUsage.create({
         data: {
           userId,
+          jobId: job.id,
           operation: "cover_letter",
           model: "claude-sonnet-4-6",
           inputTokens,
