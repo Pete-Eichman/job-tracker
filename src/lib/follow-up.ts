@@ -1,6 +1,13 @@
 import type { JobStatus } from "@/generated/prisma/enums";
+import { DAY_MS } from "@/lib/staleness";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+const FOLLOW_UP_DAYS: Partial<Record<JobStatus, number>> = {
+  SAVED: 14,
+  APPLIED: 10,
+  PHONE_SCREEN: 7,
+  TECHNICAL: 7,
+  ONSITE: 7,
+};
 
 export function needsAttention(
   status: JobStatus,
@@ -8,16 +15,5 @@ export function needsAttention(
   now: Date = new Date()
 ): boolean {
   const days = Math.floor((now.getTime() - updatedAt.getTime()) / DAY_MS);
-  switch (status) {
-    case "SAVED":
-      return days >= 14;
-    case "APPLIED":
-      return days >= 10;
-    case "PHONE_SCREEN":
-    case "TECHNICAL":
-    case "ONSITE":
-      return days >= 7;
-    default:
-      return false;
-  }
+  return days >= (FOLLOW_UP_DAYS[status] ?? Infinity);
 }

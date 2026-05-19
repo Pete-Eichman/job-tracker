@@ -9,7 +9,7 @@ const IN_FLIGHT: ReadonlySet<JobStatus> = new Set<JobStatus>([
   "ONSITE",
 ]);
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+export const DAY_MS = 24 * 60 * 60 * 1000;
 const AGING_DAYS = 7;
 const STALE_DAYS = 14;
 

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { scoreJobAgainstResume } from "@/lib/services/match-scoring";
 import { parseFormData } from "@/lib/forms";
 import { computeCostCents } from "@/lib/pricing";
+import { AI_MODELS } from "@/lib/ai-models";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -54,11 +55,11 @@ export async function scoreJob(jobId: string, resumeId?: string): Promise<void> 
       userId,
       jobId,
       operation: "match_score",
-      model: "claude-sonnet-4-6",
+      model: AI_MODELS.default,
       inputTokens: usage.inputTokens,
       outputTokens: usage.outputTokens,
       costCents: computeCostCents(
-        "claude-sonnet-4-6",
+        AI_MODELS.default,
         usage.inputTokens,
         usage.outputTokens
       ),

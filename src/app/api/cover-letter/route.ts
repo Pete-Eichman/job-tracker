@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { streamCoverLetter } from "@/lib/services/cover-letter";
 import { scoreJob } from "@/app/actions/score-job";
 import { computeCostCents } from "@/lib/pricing";
+import { AI_MODELS } from "@/lib/ai-models";
 
 const BodySchema = z.object({
   jobId: z.string().min(1),
@@ -65,11 +66,11 @@ export async function POST(req: Request) {
           userId,
           jobId: job.id,
           operation: "cover_letter",
-          model: "claude-sonnet-4-6",
+          model: AI_MODELS.default,
           inputTokens,
           outputTokens,
           costCents: computeCostCents(
-            "claude-sonnet-4-6",
+            AI_MODELS.default,
             inputTokens,
             outputTokens
           ),

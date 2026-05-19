@@ -6,6 +6,7 @@ import type {
   MatchModel,
 } from "@/generated/prisma/models";
 import { TIMEOUTS } from "@/lib/timeouts";
+import { AI_MODELS } from "@/lib/ai-models";
 
 type JobForLetter = Pick<
   JobModel,
@@ -95,7 +96,7 @@ export function streamCoverLetter(
   }
 ) {
   return streamText({
-    model: anthropic("claude-sonnet-4-6"),
+    model: anthropic(AI_MODELS.default),
     prompt: buildCoverLetterPrompt(job, resume, match),
     abortSignal: AbortSignal.timeout(TIMEOUTS.coverLetter),
     onFinish: callbacks?.onFinish,
