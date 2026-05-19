@@ -5,6 +5,10 @@ import Link from "next/link";
 import { rescoreJobAction } from "@/app/actions/score-job";
 import { deleteCoverLetterAction } from "@/app/actions/cover-letter";
 import { updateJobAction } from "@/app/actions/update-job";
+import {
+  archiveJobAction,
+  unarchiveJobAction,
+} from "@/app/actions/archive-job";
 import { SubmitButton } from "@/components/SubmitButton";
 import { CoverLetterGenerator } from "./CoverLetterGenerator";
 import { JOB_STATUS_VALUES, statusLabel } from "@/lib/job-status";
@@ -74,7 +78,14 @@ export default async function JobDetailPage({
 
         <div className="space-y-2">
           <div>
-            <h1 className="text-2xl font-semibold">{job.title}</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-semibold">{job.title}</h1>
+              {job.archivedAt && (
+                <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
+                  Archived
+                </span>
+              )}
+            </div>
             <p className="text-gray-600">
               {job.company}
               {job.location ? ` · ${job.location}` : ""}
@@ -385,6 +396,25 @@ export default async function JobDetailPage({
             </ul>
           </section>
         )}
+
+        <div className="pt-4 border-t flex items-center justify-between gap-3">
+          <p className="text-xs text-gray-500">
+            {job.archivedAt
+              ? `Archived ${job.archivedAt.toLocaleString()}`
+              : "Archive this job to hide it from your active dashboard. History is preserved."}
+          </p>
+          <form
+            action={job.archivedAt ? unarchiveJobAction : archiveJobAction}
+          >
+            <input type="hidden" name="jobId" value={job.id} />
+            <SubmitButton
+              className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              pendingLabel={job.archivedAt ? "Unarchiving…" : "Archiving…"}
+            >
+              {job.archivedAt ? "Unarchive" : "Archive"}
+            </SubmitButton>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import type { JobSort } from "@/lib/job-sort";
 export type JobFilter = {
   statuses: JobStatus[];
   query: string;
+  archived: boolean;
 };
 
 export const FILTER_PRESETS = {
@@ -27,12 +28,17 @@ function firstString(v: string | string[] | undefined): string {
 export function parseJobFilter(searchParams: {
   status?: string | string[];
   q?: string | string[];
+  archived?: string | string[];
 }): JobFilter {
   const statuses = firstString(searchParams.status)
     .split(",")
     .map((s) => s.trim().toUpperCase())
     .filter((s) => VALID.has(s)) as JobStatus[];
-  return { statuses, query: firstString(searchParams.q).trim() };
+  return {
+    statuses,
+    query: firstString(searchParams.q).trim(),
+    archived: firstString(searchParams.archived) === "1",
+  };
 }
 
 export function activePreset(filter: JobFilter): FilterPreset | null {
@@ -51,13 +57,30 @@ export function activePreset(filter: JobFilter): FilterPreset | null {
 export function presetHref(
   preset: FilterPreset,
   query: string,
-  sort: JobSort = "created"
+  sort: JobSort = "created",
+  archived = false
 ): string {
   const params = new URLSearchParams();
   const statuses = FILTER_PRESETS[preset];
   if (statuses.length > 0) params.set("status", statuses.join(","));
   if (query) params.set("q", query);
   if (sort !== "created") params.set("sort", sort);
+  if (archived) params.set("archived", "1");
+  const qs = params.toString();
+  return qs ? `/dashboard?${qs}` : "/dashboard";
+}
+
+export function viewHref(
+  archived: boolean,
+  statuses: JobStatus[],
+  query: string,
+  sort: JobSort
+): string {
+  const params = new URLSearchParams();
+  if (statuses.length > 0) params.set("status", statuses.join(","));
+  if (query) params.set("q", query);
+  if (sort !== "created") params.set("sort", sort);
+  if (archived) params.set("archived", "1");
   const qs = params.toString();
   return qs ? `/dashboard?${qs}` : "/dashboard";
 }
@@ -66,7 +89,10 @@ export function jobWhereFromFilter(
   userId: string,
   filter: JobFilter
 ): Prisma.JobWhereInput {
-  const where: Prisma.JobWhereInput = { userId };
+  const where: Prisma.JobWhereInput = {
+    userId,
+    archivedAt: filter.archived ? { not: null } : null,
+  };
   if (filter.statuses.length > 0) {
     where.status = { in: filter.statuses };
   }
