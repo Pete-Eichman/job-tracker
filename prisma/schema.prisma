@@ -59,6 +59,7 @@ model Job {
   updatedAt        DateTime      @updatedAt
   matches          Match[]
   coverLetters    CoverLetter[]
+  aiUsage          AiUsage[]
 
   @@index([userId, status])
 }
@@ -93,6 +94,8 @@ model CoverLetter {
 model AiUsage {
   id           String   @id @default(cuid())
   userId       String
+  jobId        String?
+  job          Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
   operation    String
   model        String
   inputTokens  Int
@@ -101,6 +104,7 @@ model AiUsage {
   createdAt    DateTime @default(now())
 
   @@index([userId, createdAt])
+  @@index([jobId])
 }
 
 model Account {
