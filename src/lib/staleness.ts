@@ -39,11 +39,11 @@ export function formatRelativeDays(
 }
 
 const STALENESS_TEXT: Record<Staleness, string> = {
-  fresh: "text-gray-500",
-  aging: "text-amber-700",
-  stale: "text-red-700",
+  fresh: "text-fg-subtle",
+  aging: "text-warn",
+  stale: "text-danger",
 };
 
 export function stalenessTextColor(s: Staleness | null): string {
-  return s ? STALENESS_TEXT[s] : "text-gray-400";
+  return s ? STALENESS_TEXT[s] : "text-fg-subtle";
 }

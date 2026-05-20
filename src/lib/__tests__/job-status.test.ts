@@ -19,24 +19,24 @@ describe("statusLabel", () => {
 });
 
 describe("statusColor", () => {
-  it("returns gray for SAVED", () => {
-    expect(statusColor("SAVED")).toBe("bg-gray-100 text-gray-700");
+  it("returns neutral surface for SAVED", () => {
+    expect(statusColor("SAVED")).toBe("bg-surface-2 text-fg-muted");
   });
 
-  it("returns blue for in-flight stages", () => {
-    const blue = "bg-blue-100 text-blue-700";
-    expect(statusColor("APPLIED")).toBe(blue);
-    expect(statusColor("PHONE_SCREEN")).toBe(blue);
-    expect(statusColor("TECHNICAL")).toBe(blue);
-    expect(statusColor("ONSITE")).toBe(blue);
+  it("returns accent for in-flight stages", () => {
+    const inflight = "bg-status-inflight-bg text-accent";
+    expect(statusColor("APPLIED")).toBe(inflight);
+    expect(statusColor("PHONE_SCREEN")).toBe(inflight);
+    expect(statusColor("TECHNICAL")).toBe(inflight);
+    expect(statusColor("ONSITE")).toBe(inflight);
   });
 
-  it("returns green for OFFER", () => {
-    expect(statusColor("OFFER")).toBe("bg-green-100 text-green-700");
+  it("returns positive for OFFER", () => {
+    expect(statusColor("OFFER")).toBe("bg-status-positive-bg text-positive");
   });
 
-  it("returns dim gray for terminal not-hired stages", () => {
-    const dim = "bg-gray-200 text-gray-500";
+  it("returns dim surface for terminal not-hired stages", () => {
+    const dim = "bg-surface-2 text-fg-subtle";
     expect(statusColor("REJECTED")).toBe(dim);
     expect(statusColor("WITHDRAWN")).toBe(dim);
   });

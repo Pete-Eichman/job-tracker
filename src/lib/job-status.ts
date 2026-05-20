@@ -16,14 +16,14 @@ export function statusLabel(status: JobStatus): string {
 }
 
 const COLORS: Record<JobStatus, string> = {
-  SAVED: "bg-gray-100 text-gray-700",
-  APPLIED: "bg-blue-100 text-blue-700",
-  PHONE_SCREEN: "bg-blue-100 text-blue-700",
-  TECHNICAL: "bg-blue-100 text-blue-700",
-  ONSITE: "bg-blue-100 text-blue-700",
-  OFFER: "bg-green-100 text-green-700",
-  REJECTED: "bg-gray-200 text-gray-500",
-  WITHDRAWN: "bg-gray-200 text-gray-500",
+  SAVED: "bg-surface-2 text-fg-muted",
+  APPLIED: "bg-status-inflight-bg text-accent",
+  PHONE_SCREEN: "bg-status-inflight-bg text-accent",
+  TECHNICAL: "bg-status-inflight-bg text-accent",
+  ONSITE: "bg-status-inflight-bg text-accent",
+  OFFER: "bg-status-positive-bg text-positive",
+  REJECTED: "bg-surface-2 text-fg-subtle",
+  WITHDRAWN: "bg-surface-2 text-fg-subtle",
 };
 
 export function statusColor(status: JobStatus): string {
