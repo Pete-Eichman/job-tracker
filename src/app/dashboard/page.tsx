@@ -2,7 +2,7 @@ import { auth, signOut } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { extractAndSaveJob } from "@/app/actions/extract-job";
+import { ExtractForm } from "./ExtractForm";
 import { SubmitButton } from "@/components/SubmitButton";
 import { formatSpend, formatTokens } from "@/lib/pricing";
 import {
@@ -131,21 +131,7 @@ export default async function DashboardPage({
           </div>
         )}
 
-        <form action={extractAndSaveJob} className="flex gap-2">
-          <input
-            name="url"
-            type="url"
-            required
-            placeholder="Paste a job posting URL…"
-            className="flex-1 px-3 py-2 border rounded-md text-sm"
-          />
-          <SubmitButton
-            className="px-4 py-2 bg-black text-white rounded-md text-sm hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
-            pendingLabel="Extracting…"
-          >
-            Extract
-          </SubmitButton>
-        </form>
+        <ExtractForm />
 
         <FilterBar
           filter={filter}

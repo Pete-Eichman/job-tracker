@@ -3,20 +3,10 @@ import { prisma } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { RescoreButton } from "./RescoreButton";
-import { deleteCoverLetterAction } from "@/app/actions/cover-letter";
-import { updateJobAction } from "@/app/actions/update-job";
-import {
-  archiveJobAction,
-  unarchiveJobAction,
-} from "@/app/actions/archive-job";
-import { SubmitButton } from "@/components/SubmitButton";
+import { EditJobForm } from "./EditJobForm";
+import { DeleteCoverLetterButton } from "./DeleteCoverLetterButton";
+import { ArchiveButton } from "@/app/dashboard/ArchiveButton";
 import { CoverLetterGenerator } from "./CoverLetterGenerator";
-import { JOB_STATUS_VALUES, statusLabel } from "@/lib/job-status";
-import {
-  jobStaleness,
-  formatRelativeDays,
-  stalenessTextColor,
-} from "@/lib/staleness";
 import { pickResumeId } from "@/lib/job-resume";
 import { buildMatchComparison } from "@/lib/match-comparison";
 import { formatSpend } from "@/lib/pricing";
@@ -142,66 +132,13 @@ export default async function JobDetailPage({
 
         <section className="border rounded-lg p-4 space-y-4">
           <h2 className="font-medium">Application tracking</h2>
-          <form action={updateJobAction} className="space-y-4">
-            <input type="hidden" name="jobId" value={job.id} />
-            <div className="grid sm:grid-cols-2 gap-4">
-              <label className="space-y-1 block">
-                <span className="text-sm font-medium">Status</span>
-                <select
-                  name="status"
-                  defaultValue={job.status}
-                  className="w-full border rounded-md px-3 py-2 text-sm bg-white"
-                >
-                  {JOB_STATUS_VALUES.map((s) => (
-                    <option key={s} value={s}>
-                      {statusLabel(s)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="space-y-1 block">
-                <span className="text-sm font-medium">Applied on</span>
-                <input
-                  type="date"
-                  name="appliedAt"
-                  defaultValue={
-                    job.appliedAt
-                      ? job.appliedAt.toISOString().slice(0, 10)
-                      : ""
-                  }
-                  className="w-full border rounded-md px-3 py-2 text-sm bg-white"
-                />
-                <span className="text-xs text-gray-500 block">
-                  Auto-set to today when you first move past Saved.
-                </span>
-              </label>
-            </div>
-            <label className="space-y-1 block">
-              <span className="text-sm font-medium">Notes</span>
-              <textarea
-                name="notes"
-                rows={4}
-                maxLength={10_000}
-                defaultValue={job.notes ?? ""}
-                placeholder="Recruiter, follow-ups, interview prep, etc."
-                className="w-full border rounded-md px-3 py-2 text-sm bg-white"
-              />
-            </label>
-            <div className="flex items-center justify-between gap-3">
-              <p
-                className={`text-xs ${stalenessTextColor(jobStaleness(job.status, job.updatedAt))}`}
-                title={job.updatedAt.toLocaleString()}
-              >
-                Last touched {formatRelativeDays(job.updatedAt)}
-              </p>
-              <SubmitButton
-                className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                pendingLabel="Saving…"
-              >
-                Save
-              </SubmitButton>
-            </div>
-          </form>
+          <EditJobForm
+            jobId={job.id}
+            status={job.status}
+            notes={job.notes}
+            appliedAt={job.appliedAt ? job.appliedAt.toISOString().slice(0, 10) : null}
+            updatedAt={job.updatedAt.toISOString()}
+          />
         </section>
 
         {resumes.length >= 2 && (
@@ -400,19 +337,7 @@ export default async function JobDetailPage({
                       {" · "}
                       {letter.resume?.title ?? "unknown resume"}
                     </p>
-                    <form action={deleteCoverLetterAction}>
-                      <input
-                        type="hidden"
-                        name="coverLetterId"
-                        value={letter.id}
-                      />
-                      <SubmitButton
-                        className="text-xs text-gray-500 hover:text-red-600 hover:underline disabled:opacity-50"
-                        pendingLabel="Deleting…"
-                      >
-                        Delete
-                      </SubmitButton>
-                    </form>
+                    <DeleteCoverLetterButton coverLetterId={letter.id} />
                   </div>
                   <pre className="text-sm whitespace-pre-wrap font-sans leading-relaxed text-gray-800">
                     {letter.draft}
@@ -472,17 +397,11 @@ export default async function JobDetailPage({
               ? `Archived ${job.archivedAt.toLocaleString()}`
               : "Archive this job to hide it from your active dashboard. History is preserved."}
           </p>
-          <form
-            action={job.archivedAt ? unarchiveJobAction : archiveJobAction}
-          >
-            <input type="hidden" name="jobId" value={job.id} />
-            <SubmitButton
-              className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              pendingLabel={job.archivedAt ? "Unarchiving…" : "Archiving…"}
-            >
-              {job.archivedAt ? "Unarchive" : "Archive"}
-            </SubmitButton>
-          </form>
+          <ArchiveButton
+            jobId={job.id}
+            archived={!!job.archivedAt}
+            buttonClassName="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          />
         </div>
       </div>
     </div>

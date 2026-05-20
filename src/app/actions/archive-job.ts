@@ -28,10 +28,20 @@ async function setArchivedAt(
   revalidatePath("/dashboard");
 }
 
-export async function archiveJobAction(formData: FormData): Promise<void> {
-  await setArchivedAt(formData, new Date());
-}
-
-export async function unarchiveJobAction(formData: FormData): Promise<void> {
-  await setArchivedAt(formData, null);
+export async function toggleArchiveAction(
+  _prev: { error?: string },
+  formData: FormData
+): Promise<{ error?: string }> {
+  try {
+    const shouldArchive = formData.get("shouldArchive") === "true";
+    await setArchivedAt(formData, shouldArchive ? new Date() : null);
+    return {};
+  } catch (err) {
+    return {
+      error:
+        err instanceof Error
+          ? err.message
+          : "Archive failed. Please try again.",
+    };
+  }
 }

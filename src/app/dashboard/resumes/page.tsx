@@ -2,8 +2,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { saveResume, setDefaultResume } from "@/app/actions/save-resume";
-import { SubmitButton } from "@/components/SubmitButton";
+import { SaveResumeForm } from "./SaveResumeForm";
+import { SetDefaultResumeButton } from "./SetDefaultResumeButton";
 
 export default async function ResumesPage() {
   const session = await auth();
@@ -27,33 +27,7 @@ export default async function ResumesPage() {
           </Link>
         </div>
 
-        <form action={saveResume} className="space-y-3 border rounded-lg p-4">
-          <h2 className="font-medium">Add a resume</h2>
-          <input
-            name="title"
-            type="text"
-            required
-            placeholder="e.g. Senior Backend Engineer 2025"
-            className="w-full px-3 py-2 border rounded-md text-sm"
-          />
-          <textarea
-            name="rawText"
-            required
-            rows={12}
-            placeholder="Paste your resume as plain text…"
-            className="w-full px-3 py-2 border rounded-md text-sm font-mono"
-          />
-          <p className="text-xs text-gray-500">
-            Your first resume is set as the default. Match scoring uses the
-            default resume.
-          </p>
-          <SubmitButton
-            className="px-4 py-2 bg-black text-white rounded-md text-sm hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
-            pendingLabel="Saving…"
-          >
-            Save resume
-          </SubmitButton>
-        </form>
+        <SaveResumeForm />
 
         <div className="space-y-3">
           {resumes.length === 0 && (
@@ -81,14 +55,7 @@ export default async function ResumesPage() {
                 </p>
               </div>
               {!resume.isDefault && (
-                <form action={setDefaultResume}>
-                  <input type="hidden" name="resumeId" value={resume.id} />
-                  <SubmitButton
-                    className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 shrink-0 disabled:opacity-50"
-                  >
-                    Set as default
-                  </SubmitButton>
-                </form>
+                <SetDefaultResumeButton resumeId={resume.id} />
               )}
             </div>
           ))}
