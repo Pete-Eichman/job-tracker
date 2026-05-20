@@ -35,7 +35,7 @@ export function SortSelect({ sort, filter }: Props) {
             )
           );
         }}
-        className="bg-surface-2 border border-border rounded-lg text-fg-muted px-2.5 py-1 focus:outline-none focus:border-border-strong cursor-pointer"
+        className="w-auto bg-surface-2 border border-border rounded-lg text-fg-muted px-2.5 py-1 focus:outline-none focus:border-border-strong cursor-pointer"
         style={{ fontSize: "16px" }}
       >
         {JOB_SORT_VALUES.map((value) => (
