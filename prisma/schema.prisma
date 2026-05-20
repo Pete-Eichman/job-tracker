@@ -46,8 +46,8 @@ model Job {
   company          String
   location         String?
   workMode         WorkMode?
-  salaryMin        Int?
-  salaryMax        Int?
+  salaryMin        Decimal?  @db.Decimal(12, 2)
+  salaryMax        Decimal?  @db.Decimal(12, 2)
   salaryCurrency   String?
   seniority        String?
   requiredSkills   String[]
