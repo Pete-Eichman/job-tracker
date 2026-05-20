@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { rescoreJobAction } from "@/app/actions/score-job";
+import { RescoreButton } from "./RescoreButton";
 import { deleteCoverLetterAction } from "@/app/actions/cover-letter";
 import { updateJobAction } from "@/app/actions/update-job";
 import {
@@ -289,20 +289,11 @@ export default async function JobDetailPage({
                 : "Match"}
             </h2>
             {selectedResume ? (
-              <form action={rescoreJobAction}>
-                <input type="hidden" name="jobId" value={job.id} />
-                <input
-                  type="hidden"
-                  name="resumeId"
-                  value={selectedResume.id}
-                />
-                <SubmitButton
-                  className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  pendingLabel="Scoring…"
-                >
-                  {match ? "Rescore" : "Score now"}
-                </SubmitButton>
-              </form>
+              <RescoreButton
+                jobId={job.id}
+                resumeId={selectedResume.id}
+                hasMatch={!!match}
+              />
             ) : (
               <Link
                 href="/dashboard/resumes"
