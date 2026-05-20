@@ -24,6 +24,8 @@ jobs:
 
       - run: pnpm exec prisma generate
 
+      - run: pnpm exec prisma validate
+
       - run: pnpm exec eslint "src/**/*.{ts,tsx}"
 
       - run: pnpm exec tsc --noEmit

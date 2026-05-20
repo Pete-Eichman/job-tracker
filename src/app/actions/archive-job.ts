@@ -18,19 +18,14 @@ async function setArchivedAt(
   const userId = session.user.id;
 
   const { jobId } = parseFormData(formData, Schema);
-  const existing = await prisma.job.findFirst({
+  const result = await prisma.job.updateMany({
     where: { id: jobId, userId },
-    select: { id: true },
-  });
-  if (!existing) throw new Error("Job not found");
-
-  await prisma.job.update({
-    where: { id: jobId },
     data: { archivedAt },
   });
+  if (result.count !== 1) throw new Error("Job not found");
 
-  revalidatePath("/dashboard");
   revalidatePath(`/dashboard/jobs/${jobId}`);
+  revalidatePath("/dashboard");
 }
 
 export async function archiveJobAction(formData: FormData): Promise<void> {

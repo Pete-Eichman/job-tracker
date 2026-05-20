@@ -38,9 +38,13 @@ export async function updateStatusAction(formData: FormData): Promise<void> {
     data.appliedAt = new Date();
   }
 
-  await prisma.job.update({ where: { id: parsed.jobId }, data });
-  revalidatePath("/dashboard");
+  const result = await prisma.job.updateMany({
+    where: { id: parsed.jobId, userId },
+    data,
+  });
+  if (result.count !== 1) throw new Error("Job not found");
   revalidatePath(`/dashboard/jobs/${parsed.jobId}`);
+  revalidatePath("/dashboard");
 }
 
 const UpdateJobSchema = z.object({
@@ -77,14 +81,15 @@ export async function updateJobAction(formData: FormData): Promise<void> {
     appliedAt = new Date();
   }
 
-  await prisma.job.update({
-    where: { id: parsed.jobId },
+  const result = await prisma.job.updateMany({
+    where: { id: parsed.jobId, userId },
     data: {
       status: parsed.status,
       notes: trimmedNotes === "" ? null : trimmedNotes,
       appliedAt,
     },
   });
+  if (result.count !== 1) throw new Error("Job not found");
 
   revalidatePath(`/dashboard/jobs/${parsed.jobId}`);
   revalidatePath("/dashboard");
