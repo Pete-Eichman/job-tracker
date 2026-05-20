@@ -51,55 +51,55 @@ export function FilterBar({ filter, sort, hiddenStatus, active }: Props) {
         </div>
         {/* Right-edge gradient hints at more tabs to scroll */}
         <div
-          className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-surface to-transparent"
+          className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-surface to-transparent"
           aria-hidden
         />
       </div>
 
-      {/* Zones 2 + 3: scope toggle left, modifier group right
-          Mobile: stacks to two rows. Desktop: single row. */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        {/* Active / Archived scope toggle — different axis from status tabs */}
-        <div className="flex rounded-lg overflow-hidden border border-border text-xs shrink-0">
-          <Link
-            href={viewHref(
-              false,
-              filter.statuses,
-              filter.query,
-              sort,
-              filter.attention
-            )}
-            className={`px-3 py-1.5 transition-colors duration-150 ${
-              !filter.archived
-                ? "bg-accent text-accent-fg"
-                : "text-fg-muted hover:text-fg hover:bg-surface-2"
-            }`}
-          >
-            Active
-          </Link>
-          <Link
-            href={viewHref(
-              true,
-              filter.statuses,
-              filter.query,
-              sort,
-              filter.attention
-            )}
-            className={`px-3 py-1.5 border-l border-border transition-colors duration-150 ${
-              filter.archived
-                ? "bg-accent text-accent-fg"
-                : "text-fg-muted hover:text-fg hover:bg-surface-2"
-            }`}
-          >
-            Archived
-          </Link>
+      {/* Zones 2 + 3: portrait = two rows (toggle+sort / search); desktop = single row */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        {/* Row 1 on portrait, left group on desktop: toggle + sort */}
+        <div className="flex items-center gap-2">
+          {/* Active / Archived scope toggle — hugs its two segments */}
+          <div className="flex w-fit rounded-lg overflow-hidden border border-border text-xs shrink-0">
+            <Link
+              href={viewHref(
+                false,
+                filter.statuses,
+                filter.query,
+                sort,
+                filter.attention
+              )}
+              className={`px-3 py-1.5 transition-colors duration-150 ${
+                !filter.archived
+                  ? "bg-accent text-accent-fg"
+                  : "text-fg-muted hover:text-fg hover:bg-surface-2"
+              }`}
+            >
+              Active
+            </Link>
+            <Link
+              href={viewHref(
+                true,
+                filter.statuses,
+                filter.query,
+                sort,
+                filter.attention
+              )}
+              className={`px-3 py-1.5 border-l border-border transition-colors duration-150 ${
+                filter.archived
+                  ? "bg-accent text-accent-fg"
+                  : "text-fg-muted hover:text-fg hover:bg-surface-2"
+              }`}
+            >
+              Archived
+            </Link>
+          </div>
+          <SortSelect sort={sort} filter={filter} />
         </div>
 
-        {/* Modifier group: sort orders, search filters */}
-        <div className="flex items-center gap-2">
-          <SortSelect sort={sort} filter={filter} />
-          <SearchForm filter={filter} sort={sort} hiddenStatus={hiddenStatus} />
-        </div>
+        {/* Row 2 on portrait (full-width), flex-1 on desktop */}
+        <SearchForm filter={filter} sort={sort} hiddenStatus={hiddenStatus} />
       </div>
     </div>
   );
