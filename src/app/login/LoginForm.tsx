@@ -5,6 +5,9 @@ import { credentialsLogin, type LoginState } from "./actions";
 
 const initialState: LoginState = {};
 
+const inputClass =
+  "w-full px-3 py-2 bg-surface border border-border text-fg placeholder:text-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent/30 focus:outline-none transition-[border-color,box-shadow] duration-150 rounded-lg text-sm";
+
 export function LoginForm() {
   const [state, formAction, pending] = useActionState(
     credentialsLogin,
@@ -18,19 +21,19 @@ export function LoginForm() {
         name="email"
         placeholder="Email"
         required
-        className="w-full px-3 py-2 border rounded-md bg-transparent"
+        className={inputClass}
       />
       <input
         type="password"
         name="password"
         placeholder="Password"
         required
-        className="w-full px-3 py-2 border rounded-md bg-transparent"
+        className={inputClass}
       />
       {state.error && (
         <p
           role="alert"
-          className="text-sm text-red-600"
+          className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-xs text-fg-muted"
         >
           {state.error}
         </p>
@@ -39,7 +42,7 @@ export function LoginForm() {
         type="submit"
         disabled={pending}
         aria-busy={pending}
-        className="w-full py-2 bg-foreground text-background rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-2 bg-accent text-accent-fg rounded-lg font-medium hover:bg-accent/90 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {pending ? "Signing in…" : "Sign in with email"}
       </button>

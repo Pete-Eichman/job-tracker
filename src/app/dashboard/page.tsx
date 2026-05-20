@@ -87,10 +87,10 @@ export default async function DashboardPage({
     "px-3 py-1.5 border border-border rounded-lg text-xs text-fg-muted hover:text-fg hover:bg-surface-2 transition-colors duration-150";
 
   return (
-    <div className="min-h-screen p-8 bg-bg">
+    <div className="min-h-screen px-4 py-6 sm:p-8 bg-bg">
       <div className="max-w-3xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-0.5">
             <h1 className="text-3xl font-bold tracking-tight text-fg">
               Dashboard
@@ -106,7 +106,7 @@ export default async function DashboardPage({
               </Link>
             )}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
             <a href="/api/jobs/export" className={navButtonClass}>
               Export CSV
             </a>

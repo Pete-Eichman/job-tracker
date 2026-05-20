@@ -20,13 +20,13 @@ export function RescoreButton({ jobId, resumeId, hasMatch }: Props) {
         <button
           type="submit"
           disabled={isPending}
-          className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 border border-border rounded-lg text-xs text-fg-muted hover:text-fg hover:bg-surface-2 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isPending ? "Scoring…" : hasMatch ? "Rescore" : "Score now"}
         </button>
       </form>
       {state.error && (
-        <p role="alert" className="text-xs text-red-600">
+        <p role="alert" className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-xs text-fg-muted">
           {state.error}
         </p>
       )}

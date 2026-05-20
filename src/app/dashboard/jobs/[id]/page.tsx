@@ -12,6 +12,9 @@ import { buildMatchComparison } from "@/lib/match-comparison";
 import { formatSpend } from "@/lib/pricing";
 import { scoreColor } from "@/lib/score-color";
 
+const navButtonClass =
+  "px-3 py-1.5 border border-border rounded-lg text-xs text-fg-muted hover:text-fg hover:bg-surface-2 transition-colors duration-150";
+
 export default async function JobDetailPage({
   params,
   searchParams,
@@ -77,61 +80,58 @@ export default async function JobDetailPage({
   const aiSpendCalls = aiSpend._count;
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen px-4 py-6 sm:p-8">
       <div className="max-w-3xl mx-auto space-y-6">
-        <Link
-          href="/dashboard"
-          className="text-sm text-gray-600 hover:underline"
-        >
+        <Link href="/dashboard" className={navButtonClass}>
           ← Back to dashboard
         </Link>
 
         <div className="space-y-2">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-semibold">{job.title}</h1>
+              <h1 className="text-2xl font-semibold text-fg">{job.title}</h1>
               {job.archivedAt && (
-                <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
+                <span className="text-xs px-2 py-0.5 bg-surface-2 text-fg-muted rounded-full">
                   Archived
                 </span>
               )}
             </div>
-            <p className="text-gray-600">
+            <p className="text-fg-muted">
               {job.company}
               {job.location ? ` · ${job.location}` : ""}
               {job.workMode ? ` · ${job.workMode}` : ""}
             </p>
           </div>
           {(job.salaryMin || job.salaryMax) && (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-fg-muted">
               Salary: {job.salaryCurrency ?? ""}{" "}
               {job.salaryMin?.toNumber().toLocaleString() ?? "?"} –{" "}
               {job.salaryMax?.toNumber().toLocaleString() ?? "?"}
             </p>
           )}
           {job.seniority && (
-            <p className="text-sm text-gray-600">Seniority: {job.seniority}</p>
+            <p className="text-sm text-fg-muted">Seniority: {job.seniority}</p>
           )}
           {job.sourceUrl && (
             <a
               href={job.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-gray-400 hover:underline break-all"
+              className="text-xs text-fg-subtle hover:text-fg-muted transition-colors duration-150 break-all"
             >
               {job.sourceUrl}
             </a>
           )}
           {aiSpendCalls > 0 && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-fg-subtle">
               AI spend: {formatSpend(aiSpendCents)} across {aiSpendCalls} call
               {aiSpendCalls === 1 ? "" : "s"}
             </p>
           )}
         </div>
 
-        <section className="border rounded-lg p-4 space-y-4">
-          <h2 className="font-medium">Application tracking</h2>
+        <section className="bg-surface border border-border rounded-xl p-4 space-y-4">
+          <h2 className="font-medium text-fg">Application tracking</h2>
           <EditJobForm
             jobId={job.id}
             status={job.status}
@@ -142,8 +142,8 @@ export default async function JobDetailPage({
         </section>
 
         {resumes.length >= 2 && (
-          <section className="border rounded-lg p-3 space-y-2">
-            <p className="text-xs text-gray-500">Resume</p>
+          <section className="bg-surface border border-border rounded-xl p-3 space-y-2">
+            <p className="text-xs text-fg-subtle">Resume</p>
             <div className="flex flex-wrap gap-2">
               {resumes.map((r) => {
                 const active = r.id === selectedResumeId;
@@ -151,10 +151,10 @@ export default async function JobDetailPage({
                   <Link
                     key={r.id}
                     href={`/dashboard/jobs/${job.id}?resume=${r.id}`}
-                    className={`text-xs px-3 py-1 rounded-full border ${
+                    className={`text-xs px-3 py-1 rounded-full border transition-colors duration-150 ${
                       active
-                        ? "bg-gray-900 text-white border-gray-900"
-                        : "bg-white text-gray-700 hover:bg-gray-50"
+                        ? "bg-accent text-accent-fg border-accent"
+                        : "text-fg-muted border-border hover:bg-surface-2 hover:text-fg"
                     }`}
                   >
                     {r.title}
@@ -167,12 +167,12 @@ export default async function JobDetailPage({
         )}
 
         {comparison.length >= 2 && (
-          <section className="border rounded-lg p-4 space-y-3">
-            <h2 className="font-medium">Compare matches</h2>
+          <section className="bg-surface border border-border rounded-xl p-4 space-y-3">
+            <h2 className="font-medium text-fg">Compare matches</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-xs text-gray-500 text-left">
+                  <tr className="text-xs text-fg-subtle text-left">
                     <th className="font-normal pb-2">Resume</th>
                     <th className="font-normal pb-2">Score</th>
                     <th className="font-normal pb-2">Strengths</th>
@@ -185,13 +185,13 @@ export default async function JobDetailPage({
                     return (
                       <tr
                         key={row.resumeId}
-                        className={selected ? "bg-gray-50" : ""}
+                        className={selected ? "bg-surface-2" : ""}
                       >
                         <td className="py-2 pr-3">
                           <Link
                             href={`/dashboard/jobs/${job.id}?resume=${row.resumeId}`}
                             className={
-                              selected ? "font-medium" : "hover:underline"
+                              selected ? "font-medium text-fg" : "text-fg-muted hover:underline"
                             }
                           >
                             {row.resumeTitle}
@@ -205,10 +205,10 @@ export default async function JobDetailPage({
                             {row.score}
                           </span>
                         </td>
-                        <td className="py-2 pr-3 text-gray-700">
+                        <td className="py-2 pr-3 text-fg-muted">
                           {row.strengthsCount}
                         </td>
-                        <td className="py-2 text-gray-700">{row.gapsCount}</td>
+                        <td className="py-2 text-fg-muted">{row.gapsCount}</td>
                       </tr>
                     );
                   })}
@@ -218,9 +218,9 @@ export default async function JobDetailPage({
           </section>
         )}
 
-        <section className="border rounded-lg p-4 space-y-4">
+        <section className="bg-surface border border-border rounded-xl p-4 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-medium">
+            <h2 className="font-medium text-fg">
               {selectedResume
                 ? `Match against ${selectedResume.title}`
                 : "Match"}
@@ -232,10 +232,7 @@ export default async function JobDetailPage({
                 hasMatch={!!match}
               />
             ) : (
-              <Link
-                href="/dashboard/resumes"
-                className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50"
-              >
+              <Link href="/dashboard/resumes" className={navButtonClass}>
                 Add a resume
               </Link>
             )}
@@ -249,49 +246,49 @@ export default async function JobDetailPage({
                 >
                   {match.score}
                 </span>
-                <span className="text-sm text-gray-500">/ 100</span>
+                <span className="text-sm text-fg-subtle">/ 100</span>
               </div>
-              <p className="text-sm text-gray-700 leading-relaxed">
+              <p className="text-sm text-fg-muted leading-relaxed">
                 {match.reasoning}
               </p>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Strengths</h3>
+                  <h3 className="text-sm font-medium text-fg mb-2">Strengths</h3>
                   {match.strengths.length === 0 ? (
-                    <p className="text-xs text-gray-500">None identified.</p>
+                    <p className="text-xs text-fg-subtle">None identified.</p>
                   ) : (
                     <ul className="space-y-1 text-sm">
                       {match.strengths.map((s, i) => (
                         <li key={i} className="flex gap-2">
-                          <span className="text-green-600">+</span>
-                          <span>{s}</span>
+                          <span className="text-positive">+</span>
+                          <span className="text-fg-muted">{s}</span>
                         </li>
                       ))}
                     </ul>
                   )}
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Gaps</h3>
+                  <h3 className="text-sm font-medium text-fg mb-2">Gaps</h3>
                   {match.gaps.length === 0 ? (
-                    <p className="text-xs text-gray-500">None identified.</p>
+                    <p className="text-xs text-fg-subtle">None identified.</p>
                   ) : (
                     <ul className="space-y-1 text-sm">
                       {match.gaps.map((g, i) => (
                         <li key={i} className="flex gap-2">
-                          <span className="text-yellow-700">−</span>
-                          <span>{g}</span>
+                          <span className="text-warn">−</span>
+                          <span className="text-fg-muted">{g}</span>
                         </li>
                       ))}
                     </ul>
                   )}
                 </div>
               </div>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-fg-subtle">
                 Scored {match.createdAt.toLocaleString()}
               </p>
             </>
           ) : (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-fg-muted">
               {selectedResume
                 ? `Not scored yet. Click Score now to evaluate this job against ${selectedResume.title}.`
                 : "Add a resume to score this job."}
@@ -299,9 +296,9 @@ export default async function JobDetailPage({
           )}
         </section>
 
-        <section className="border rounded-lg p-4 space-y-4">
+        <section className="bg-surface border border-border rounded-xl p-4 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-medium">Cover letters</h2>
+            <h2 className="font-medium text-fg">Cover letters</h2>
             {selectedResume ? (
               <CoverLetterGenerator
                 jobId={job.id}
@@ -309,17 +306,14 @@ export default async function JobDetailPage({
                 hasExisting={coverLetters.length > 0}
               />
             ) : (
-              <Link
-                href="/dashboard/resumes"
-                className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50"
-              >
+              <Link href="/dashboard/resumes" className={navButtonClass}>
                 Add a resume
               </Link>
             )}
           </div>
 
           {coverLetters.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-fg-muted">
               {selectedResume
                 ? "No cover letters yet. Generate one to draft an application."
                 : "Add a resume to draft a cover letter."}
@@ -329,17 +323,17 @@ export default async function JobDetailPage({
               {coverLetters.map((letter) => (
                 <article
                   key={letter.id}
-                  className="border rounded-md p-3 space-y-2 bg-gray-50/50"
+                  className="bg-surface-2 border border-border rounded-lg p-3 space-y-2"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-fg-subtle">
                       {letter.createdAt.toLocaleString()}
                       {" · "}
                       {letter.resume?.title ?? "unknown resume"}
                     </p>
                     <DeleteCoverLetterButton coverLetterId={letter.id} />
                   </div>
-                  <pre className="text-sm whitespace-pre-wrap font-sans leading-relaxed text-gray-800">
+                  <pre className="text-sm whitespace-pre-wrap font-sans leading-relaxed text-fg">
                     {letter.draft}
                   </pre>
                 </article>
@@ -350,12 +344,12 @@ export default async function JobDetailPage({
 
         {job.requiredSkills.length > 0 && (
           <section>
-            <h2 className="font-medium mb-2">Required skills</h2>
+            <h2 className="font-medium text-fg mb-2">Required skills</h2>
             <div className="flex flex-wrap gap-1">
               {job.requiredSkills.map((skill) => (
                 <span
                   key={skill}
-                  className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full"
+                  className="text-xs px-2 py-0.5 bg-surface-2 text-fg-muted border border-border rounded-full"
                 >
                   {skill}
                 </span>
@@ -366,12 +360,12 @@ export default async function JobDetailPage({
 
         {job.niceToHaveSkills.length > 0 && (
           <section>
-            <h2 className="font-medium mb-2">Nice to have</h2>
+            <h2 className="font-medium text-fg mb-2">Nice to have</h2>
             <div className="flex flex-wrap gap-1">
               {job.niceToHaveSkills.map((skill) => (
                 <span
                   key={skill}
-                  className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full"
+                  className="text-xs px-2 py-0.5 bg-surface border border-border text-fg-subtle rounded-full"
                 >
                   {skill}
                 </span>
@@ -382,8 +376,8 @@ export default async function JobDetailPage({
 
         {job.responsibilities.length > 0 && (
           <section>
-            <h2 className="font-medium mb-2">Responsibilities</h2>
-            <ul className="space-y-1 text-sm list-disc list-inside text-gray-700">
+            <h2 className="font-medium text-fg mb-2">Responsibilities</h2>
+            <ul className="space-y-1 text-sm list-disc list-inside text-fg-muted">
               {job.responsibilities.map((r, i) => (
                 <li key={i}>{r}</li>
               ))}
@@ -391,8 +385,8 @@ export default async function JobDetailPage({
           </section>
         )}
 
-        <div className="pt-4 border-t flex items-center justify-between gap-3">
-          <p className="text-xs text-gray-500">
+        <div className="pt-4 border-t border-border flex items-center justify-between gap-3">
+          <p className="text-xs text-fg-subtle">
             {job.archivedAt
               ? `Archived ${job.archivedAt.toLocaleString()}`
               : "Archive this job to hide it from your active dashboard. History is preserved."}
@@ -400,7 +394,7 @@ export default async function JobDetailPage({
           <ArchiveButton
             jobId={job.id}
             archived={!!job.archivedAt}
-            buttonClassName="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            buttonClassName={`${navButtonClass} disabled:opacity-50 disabled:cursor-not-allowed`}
           />
         </div>
       </div>

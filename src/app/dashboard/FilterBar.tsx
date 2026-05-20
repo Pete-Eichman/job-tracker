@@ -120,9 +120,9 @@ export function FilterBar({ filter, sort, hiddenStatus, active }: Props) {
           );
         })}
 
-        <div className="flex-1" />
-
-        <SearchForm filter={filter} sort={sort} hiddenStatus={hiddenStatus} />
+        <div className="contents sm:flex sm:flex-1 sm:justify-end">
+          <SearchForm filter={filter} sort={sort} hiddenStatus={hiddenStatus} />
+        </div>
       </div>
     </div>
   );

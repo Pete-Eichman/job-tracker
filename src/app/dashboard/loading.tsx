@@ -1,14 +1,14 @@
 export default function DashboardLoading() {
   return (
-    <div className="min-h-screen p-8 bg-bg">
+    <div className="min-h-screen px-4 py-6 sm:p-8 bg-bg">
       <div className="max-w-3xl mx-auto space-y-8">
         {/* Header skeleton */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1.5">
             <div className="h-8 w-40 bg-surface-2 rounded-lg animate-pulse" />
             <div className="h-3 w-48 bg-surface-2 rounded animate-pulse" />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <div className="h-[30px] w-24 bg-surface-2 rounded-lg animate-pulse" />
             <div className="h-[30px] w-20 bg-surface-2 rounded-lg animate-pulse" />
             <div className="h-[30px] w-20 bg-surface-2 rounded-lg animate-pulse" />
