@@ -47,6 +47,11 @@ function buildJobBrief(job: JobForLetter): string {
     .join("\n");
 }
 
+// Job fields and resume.rawText are concatenated directly into the prompt.
+// streamText produces free-form prose, so injected instructions in job/resume text
+// could influence the cover letter draft. Blast radius is limited to the requesting
+// user's own output — no structured data extraction or cross-user impact is possible.
+// Revisit if this function is ever used in a multi-tenant or automated pipeline.
 export function buildCoverLetterPrompt(
   job: JobForLetter,
   resume: ResumeForLetter,

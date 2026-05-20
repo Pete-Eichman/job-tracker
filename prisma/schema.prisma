@@ -87,6 +87,8 @@ model CoverLetter {
   jobId     String
   job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   resumeId  String?
+  // SetNull (not Cascade): cover letters are user-authored content kept as a
+  // historical record even when the source resume is deleted.
   resume    Resume?  @relation(fields: [resumeId], references: [id], onDelete: SetNull)
   draft     String
   createdAt DateTime @default(now())
@@ -98,6 +100,8 @@ model AiUsage {
   id           String   @id @default(cuid())
   userId       String
   jobId        String?
+  // SetNull (not Cascade): AI usage records are kept for billing/audit history
+  // even when the associated job is deleted.
   job          Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
   operation    String
   model        String

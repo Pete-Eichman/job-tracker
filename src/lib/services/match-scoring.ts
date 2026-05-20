@@ -89,6 +89,9 @@ export async function scoreJobAgainstResume(
     .filter(Boolean)
     .join("\n");
 
+  // Job fields and resume.rawText are concatenated directly into the prompt.
+  // Safe here because generateObject enforces MatchSchema — injected instructions
+  // cannot alter the output shape or escape into unstructured text.
   const prompt = `You are evaluating how well a candidate's resume fits a specific job posting.
 
 Score the match 0-100 based on:
