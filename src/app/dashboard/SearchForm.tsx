@@ -13,7 +13,7 @@ export function SearchForm({ filter, sort, hiddenStatus }: Props) {
   return (
     <form
       action="/dashboard"
-      className="flex items-center gap-1 border border-border rounded-lg bg-bg px-2.5 h-[30px] w-52 focus-within:border-border-strong transition-[border-color] duration-150"
+      className="flex items-center gap-1 border border-border rounded-lg bg-bg px-2.5 h-[30px] w-full sm:w-52 focus-within:border-border-strong transition-[border-color] duration-150"
     >
       <input type="hidden" name="status" value={hiddenStatus} />
       <input type="hidden" name="sort" value={sort} />

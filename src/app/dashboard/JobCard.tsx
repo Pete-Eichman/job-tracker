@@ -97,7 +97,7 @@ export function JobCard({ job, archived, now }: Props) {
 
   return (
     <div className="bg-surface border border-border rounded-xl p-5 space-y-3 hover:bg-surface-2 hover:border-border-strong transition-colors duration-200">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0 space-y-0.5">
           <Link
             href={`/dashboard/jobs/${job.id}`}
@@ -172,7 +172,7 @@ export function JobCard({ job, archived, now }: Props) {
               strokeLinejoin="round"
             />
           </svg>
-          <span className="truncate max-w-[280px]">
+          <span className="truncate max-w-[200px] sm:max-w-[280px]">
             {friendlyDomain(job.sourceUrl)}
           </span>
         </a>

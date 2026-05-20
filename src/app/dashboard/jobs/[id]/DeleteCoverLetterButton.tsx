@@ -16,14 +16,14 @@ export function DeleteCoverLetterButton({ coverLetterId }: Props) {
       <form action={formAction}>
         <input type="hidden" name="coverLetterId" value={coverLetterId} />
         <SubmitButton
-          className="text-xs text-gray-500 hover:text-red-600 hover:underline disabled:opacity-50"
+          className="text-xs text-fg-subtle hover:text-danger hover:underline transition-colors duration-150 disabled:opacity-50"
           pendingLabel="Deleting…"
         >
           Delete
         </SubmitButton>
       </form>
       {state.error && (
-        <p role="alert" className="text-xs text-red-600">
+        <p role="alert" className="text-xs text-danger">
           {state.error}
         </p>
       )}

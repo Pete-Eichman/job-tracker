@@ -5,6 +5,9 @@ import { register, type RegisterState } from "./actions";
 
 const initialState: RegisterState = {};
 
+const inputClass =
+  "w-full px-3 py-2 bg-surface border border-border text-fg placeholder:text-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent/30 focus:outline-none transition-[border-color,box-shadow] duration-150 rounded-lg text-sm";
+
 export function RegisterForm() {
   const [state, formAction, pending] = useActionState(register, initialState);
 
@@ -15,7 +18,7 @@ export function RegisterForm() {
         name="email"
         placeholder="Email"
         required
-        className="w-full px-3 py-2 border rounded-md bg-transparent"
+        className={inputClass}
       />
       <input
         type="password"
@@ -23,10 +26,13 @@ export function RegisterForm() {
         placeholder="Password (min 8 chars)"
         required
         minLength={8}
-        className="w-full px-3 py-2 border rounded-md bg-transparent"
+        className={inputClass}
       />
       {state.error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p
+          role="alert"
+          className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-xs text-fg-muted"
+        >
           {state.error}
         </p>
       )}
@@ -34,7 +40,7 @@ export function RegisterForm() {
         type="submit"
         disabled={pending}
         aria-busy={pending}
-        className="w-full py-2 bg-foreground text-background rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-2 bg-accent text-accent-fg rounded-lg font-medium hover:bg-accent/90 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {pending ? "Creating account…" : "Create account"}
       </button>

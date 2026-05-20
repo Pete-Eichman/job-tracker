@@ -19,6 +19,9 @@ interface Props {
   updatedAt: string;
 }
 
+const inputClass =
+  "w-full border border-border bg-surface text-fg rounded-lg px-3 py-2 text-sm focus:border-accent focus:ring-1 focus:ring-accent/30 focus:outline-none transition-[border-color,box-shadow] duration-150";
+
 export function EditJobForm({
   jobId,
   status,
@@ -34,11 +37,11 @@ export function EditJobForm({
       <input type="hidden" name="jobId" value={jobId} />
       <div className="grid sm:grid-cols-2 gap-4">
         <label className="space-y-1 block">
-          <span className="text-sm font-medium">Status</span>
+          <span className="text-sm font-medium text-fg">Status</span>
           <select
             name="status"
             defaultValue={status}
-            className="w-full border rounded-md px-3 py-2 text-sm bg-white"
+            className={inputClass}
           >
             {JOB_STATUS_VALUES.map((s) => (
               <option key={s} value={s}>
@@ -48,27 +51,27 @@ export function EditJobForm({
           </select>
         </label>
         <label className="space-y-1 block">
-          <span className="text-sm font-medium">Applied on</span>
+          <span className="text-sm font-medium text-fg">Applied on</span>
           <input
             type="date"
             name="appliedAt"
             defaultValue={appliedAt ?? ""}
-            className="w-full border rounded-md px-3 py-2 text-sm bg-white"
+            className={inputClass}
           />
-          <span className="text-xs text-gray-500 block">
+          <span className="text-xs text-fg-subtle block">
             Auto-set to today when you first move past Saved.
           </span>
         </label>
       </div>
       <label className="space-y-1 block">
-        <span className="text-sm font-medium">Notes</span>
+        <span className="text-sm font-medium text-fg">Notes</span>
         <textarea
           name="notes"
           rows={4}
           maxLength={10_000}
           defaultValue={notes ?? ""}
           placeholder="Recruiter, follow-ups, interview prep, etc."
-          className="w-full border rounded-md px-3 py-2 text-sm bg-white"
+          className={inputClass}
         />
       </label>
       <div className="flex items-center justify-between gap-3">
@@ -80,13 +83,13 @@ export function EditJobForm({
             Last touched {formatRelativeDays(updatedAtDate)}
           </p>
           {state.error && (
-            <p role="alert" className="text-xs text-red-600">
+            <p role="alert" className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-xs text-fg-muted">
               {state.error}
             </p>
           )}
         </div>
         <SubmitButton
-          className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 border border-border rounded-lg text-xs text-fg-muted hover:text-fg hover:bg-surface-2 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
           pendingLabel="Saving…"
         >
           Save

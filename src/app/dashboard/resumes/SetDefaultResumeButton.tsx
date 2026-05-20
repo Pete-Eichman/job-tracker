@@ -16,13 +16,13 @@ export function SetDefaultResumeButton({ resumeId }: Props) {
       <form action={formAction}>
         <input type="hidden" name="resumeId" value={resumeId} />
         <SubmitButton
-          className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 shrink-0 disabled:opacity-50"
+          className="px-3 py-1.5 border border-border rounded-lg text-xs text-fg-muted hover:text-fg hover:bg-surface-2 transition-colors duration-150 shrink-0 disabled:opacity-50"
         >
           Set as default
         </SubmitButton>
       </form>
       {state.error && (
-        <p role="alert" className="text-xs text-red-600">
+        <p role="alert" className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-xs text-fg-muted">
           {state.error}
         </p>
       )}

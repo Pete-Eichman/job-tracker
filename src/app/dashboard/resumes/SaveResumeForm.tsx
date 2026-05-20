@@ -4,37 +4,40 @@ import { useActionState } from "react";
 import { saveResume } from "@/app/actions/save-resume";
 import { SubmitButton } from "@/components/SubmitButton";
 
+const inputClass =
+  "w-full px-3 py-2 bg-surface border border-border text-fg placeholder:text-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent/30 focus:outline-none transition-[border-color,box-shadow] duration-150 rounded-lg text-sm";
+
 export function SaveResumeForm() {
   const [state, formAction] = useActionState(saveResume, {});
 
   return (
-    <form action={formAction} className="space-y-3 border rounded-lg p-4">
-      <h2 className="font-medium">Add a resume</h2>
+    <form action={formAction} className="space-y-3 bg-surface border border-border rounded-xl p-4">
+      <h2 className="font-medium text-fg">Add a resume</h2>
       <input
         name="title"
         type="text"
         required
         placeholder="e.g. Senior Backend Engineer 2025"
-        className="w-full px-3 py-2 border rounded-md text-sm"
+        className={inputClass}
       />
       <textarea
         name="rawText"
         required
         rows={12}
         placeholder="Paste your resume as plain text…"
-        className="w-full px-3 py-2 border rounded-md text-sm font-mono"
+        className={`${inputClass} font-mono`}
       />
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-fg-subtle">
         Your first resume is set as the default. Match scoring uses the default
         resume.
       </p>
       {state.error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-xs text-fg-muted">
           {state.error}
         </p>
       )}
       <SubmitButton
-        className="px-4 py-2 bg-black text-white rounded-md text-sm hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="px-4 py-2 bg-accent text-accent-fg rounded-lg text-sm font-medium hover:bg-accent/90 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
         pendingLabel="Saving…"
       >
         Save resume

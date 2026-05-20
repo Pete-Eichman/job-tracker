@@ -10,6 +10,9 @@ import {
 import { backfillUsageCostsAction } from "@/app/actions/backfill";
 import { SubmitButton } from "@/components/SubmitButton";
 
+const navButtonClass =
+  "px-3 py-1.5 border border-border rounded-lg text-xs text-fg-muted hover:text-fg hover:bg-surface-2 transition-colors duration-150";
+
 export default async function UsagePage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
@@ -46,82 +49,81 @@ export default async function UsagePage() {
   );
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen px-4 py-6 sm:p-8">
       <div className="max-w-3xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Usage breakdown</h1>
-          <Link
-            href="/dashboard"
-            className="text-sm text-gray-600 hover:underline"
-          >
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-2xl font-semibold text-fg">Usage breakdown</h1>
+          <Link href="/dashboard" className={navButtonClass}>
             ← Back to dashboard
           </Link>
         </div>
 
         {groups.length === 0 ? (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-fg-subtle">
             No AI activity yet. Extract a job or score a match to see usage
             here.
           </p>
         ) : (
           <>
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-gray-600">
-                  <tr>
-                    <th className="text-left px-4 py-2 font-medium">
-                      Operation
-                    </th>
-                    <th className="text-right px-4 py-2 font-medium">Calls</th>
-                    <th className="text-right px-4 py-2 font-medium">Input</th>
-                    <th className="text-right px-4 py-2 font-medium">Output</th>
-                    <th className="text-right px-4 py-2 font-medium">Cost</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {groups.map((g) => (
-                    <tr key={g.operation} className="border-t">
-                      <td className="px-4 py-2">
-                        {formatOperation(g.operation)}
+            <div className="border border-border rounded-xl overflow-hidden bg-surface">
+              <div className="overflow-x-auto -mx-px">
+                <table className="w-full text-sm">
+                  <thead className="bg-surface-2 text-fg-muted">
+                    <tr>
+                      <th className="text-left px-4 py-2 font-medium">
+                        Operation
+                      </th>
+                      <th className="text-right px-4 py-2 font-medium">Calls</th>
+                      <th className="text-right px-4 py-2 font-medium">Input</th>
+                      <th className="text-right px-4 py-2 font-medium">Output</th>
+                      <th className="text-right px-4 py-2 font-medium">Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groups.map((g) => (
+                      <tr key={g.operation} className="border-t border-border">
+                        <td className="px-4 py-2 text-fg">
+                          {formatOperation(g.operation)}
+                        </td>
+                        <td className="text-right px-4 py-2 tabular-nums text-fg-muted">
+                          {g._count}
+                        </td>
+                        <td className="text-right px-4 py-2 tabular-nums text-fg-muted">
+                          {formatTokens(g._sum.inputTokens ?? 0)}
+                        </td>
+                        <td className="text-right px-4 py-2 tabular-nums text-fg-muted">
+                          {formatTokens(g._sum.outputTokens ?? 0)}
+                        </td>
+                        <td className="text-right px-4 py-2 tabular-nums text-fg-muted">
+                          {formatSpend(g._sum.costCents ?? 0)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-surface-2 font-medium text-fg">
+                    <tr className="border-t border-border">
+                      <td className="px-4 py-2">Total</td>
+                      <td className="text-right px-4 py-2 tabular-nums">
+                        {totals.calls}
                       </td>
                       <td className="text-right px-4 py-2 tabular-nums">
-                        {g._count}
+                        {formatTokens(totals.input)}
                       </td>
                       <td className="text-right px-4 py-2 tabular-nums">
-                        {formatTokens(g._sum.inputTokens ?? 0)}
+                        {formatTokens(totals.output)}
                       </td>
                       <td className="text-right px-4 py-2 tabular-nums">
-                        {formatTokens(g._sum.outputTokens ?? 0)}
-                      </td>
-                      <td className="text-right px-4 py-2 tabular-nums">
-                        {formatSpend(g._sum.costCents ?? 0)}
+                        {formatSpend(totals.cost)}
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-                <tfoot className="bg-gray-50 font-medium">
-                  <tr className="border-t">
-                    <td className="px-4 py-2">Total</td>
-                    <td className="text-right px-4 py-2 tabular-nums">
-                      {totals.calls}
-                    </td>
-                    <td className="text-right px-4 py-2 tabular-nums">
-                      {formatTokens(totals.input)}
-                    </td>
-                    <td className="text-right px-4 py-2 tabular-nums">
-                      {formatTokens(totals.output)}
-                    </td>
-                    <td className="text-right px-4 py-2 tabular-nums">
-                      {formatSpend(totals.cost)}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
+                  </tfoot>
+                </table>
+              </div>
             </div>
 
             {untrackedCount > 0 && (
               <div className="space-y-2">
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-fg-subtle">
                   {untrackedCount} older{" "}
                   {untrackedCount === 1 ? "row was" : "rows were"} written
                   before cost tracking landed and{" "}
@@ -131,7 +133,7 @@ export default async function UsagePage() {
                 <form action={backfillUsageCostsAction}>
                   <SubmitButton
                     pendingLabel="Backfilling…"
-                    className="text-xs px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50"
+                    className={`${navButtonClass} disabled:opacity-50`}
                   >
                     Backfill costs for these rows
                   </SubmitButton>

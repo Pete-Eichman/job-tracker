@@ -74,7 +74,7 @@ export function ArchiveButton({
             type="submit"
             disabled={isPending}
             title={label}
-            className="flex items-center justify-center w-7 h-7 rounded-md text-fg-subtle hover:text-fg hover:bg-surface-2 transition-colors duration-150 disabled:opacity-40"
+            className="flex items-center justify-center w-8 h-8 rounded-md text-fg-subtle hover:text-fg hover:bg-surface-2 transition-colors duration-150 disabled:opacity-40"
           >
             <span className="sr-only">{isPending ? pendingLabel : label}</span>
             <ArchiveIcon title={isPending ? pendingLabel : label} />
