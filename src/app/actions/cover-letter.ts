@@ -12,23 +12,34 @@ const DeleteSchema = z.object({
 });
 
 export async function deleteCoverLetterAction(
+  _prev: { error?: string },
   formData: FormData
-): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.id) redirect("/login");
-  const userId = session.user.id;
+): Promise<{ error?: string }> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) redirect("/login");
+    const userId = session.user.id;
 
-  const { coverLetterId } = parseFormData(formData, DeleteSchema);
+    const { coverLetterId } = parseFormData(formData, DeleteSchema);
 
-  const letter = await prisma.coverLetter.findUnique({
-    where: { id: coverLetterId },
-    select: { id: true, jobId: true, job: { select: { userId: true } } },
-  });
-  if (!letter || letter.job.userId !== userId) {
-    throw new Error("Cover letter not found");
+    const letter = await prisma.coverLetter.findUnique({
+      where: { id: coverLetterId },
+      select: { id: true, jobId: true, job: { select: { userId: true } } },
+    });
+    if (!letter || letter.job.userId !== userId) {
+      throw new Error("Cover letter not found");
+    }
+
+    await prisma.coverLetter.delete({ where: { id: coverLetterId } });
+
+    revalidatePath(`/dashboard/jobs/${letter.jobId}`);
+    return {};
+  } catch (err) {
+    return {
+      error:
+        err instanceof Error
+          ? err.message
+          : "Delete failed. Please try again.",
+    };
   }
-
-  await prisma.coverLetter.delete({ where: { id: coverLetterId } });
-
-  revalidatePath(`/dashboard/jobs/${letter.jobId}`);
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Job, Match } from "@/generated/prisma/client";
-import { archiveJobAction, unarchiveJobAction } from "@/app/actions/archive-job";
+import { ArchiveButton } from "./ArchiveButton";
 import { StatusSelect } from "@/components/StatusSelect";
 import { jobStaleness, formatRelativeDays, stalenessTextColor } from "@/lib/staleness";
 import { needsAttention } from "@/lib/follow-up";
@@ -80,15 +80,11 @@ export function JobCard({ job, archived, now }: Props) {
         </a>
       )}
       <div className="flex justify-end">
-        <form action={archived ? unarchiveJobAction : archiveJobAction}>
-          <input type="hidden" name="jobId" value={job.id} />
-          <button
-            type="submit"
-            className="text-xs text-gray-400 hover:text-gray-700"
-          >
-            {archived ? "Unarchive" : "Archive"}
-          </button>
-        </form>
+        <ArchiveButton
+          jobId={job.id}
+          archived={archived}
+          buttonClassName="text-xs text-gray-400 hover:text-gray-700"
+        />
       </div>
     </div>
   );
