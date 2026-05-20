@@ -105,8 +105,8 @@ export default async function JobDetailPage({
           {(job.salaryMin || job.salaryMax) && (
             <p className="text-sm text-gray-600">
               Salary: {job.salaryCurrency ?? ""}{" "}
-              {job.salaryMin?.toLocaleString() ?? "?"} –{" "}
-              {job.salaryMax?.toLocaleString() ?? "?"}
+              {job.salaryMin?.toNumber().toLocaleString() ?? "?"} –{" "}
+              {job.salaryMax?.toNumber().toLocaleString() ?? "?"}
             </p>
           )}
           {job.seniority && (

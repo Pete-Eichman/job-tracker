@@ -60,8 +60,8 @@ type ResumeForMatching = Pick<ResumeModel, "rawText">;
 function formatSalary(job: JobForMatching): string {
   if (job.salaryMin == null && job.salaryMax == null) return "Not specified";
   const cur = job.salaryCurrency ?? "";
-  const min = job.salaryMin?.toLocaleString() ?? "?";
-  const max = job.salaryMax?.toLocaleString() ?? "?";
+  const min = job.salaryMin?.toNumber().toLocaleString() ?? "?";
+  const max = job.salaryMax?.toNumber().toLocaleString() ?? "?";
   return `${cur} ${min} - ${max}`.trim();
 }
 

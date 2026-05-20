@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { Prisma } from "@/generated/prisma/client";
 
 const generateObjectMock = vi.fn();
 
@@ -21,8 +22,8 @@ const baseJob = {
   requiredSkills: ["Go", "Postgres"],
   niceToHaveSkills: ["Kafka"],
   responsibilities: ["Build APIs"],
-  salaryMin: 120000,
-  salaryMax: 160000,
+  salaryMin: new Prisma.Decimal(120000),
+  salaryMax: new Prisma.Decimal(160000),
   salaryCurrency: "USD",
 };
 
