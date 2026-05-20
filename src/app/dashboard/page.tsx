@@ -83,16 +83,22 @@ export default async function DashboardPage({
     await signOut({ redirectTo: "/login" });
   }
 
+  const navButtonClass =
+    "px-3 py-1.5 border border-border rounded-lg text-xs text-fg-muted hover:text-fg hover:bg-surface-2 transition-colors duration-150";
+
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen p-8 bg-bg">
       <div className="max-w-3xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold">Dashboard</h1>
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-0.5">
+            <h1 className="text-3xl font-bold tracking-tight text-fg">
+              Dashboard
+            </h1>
             {usageCount > 0 && (
               <Link
                 href="/dashboard/usage"
-                className="text-xs text-gray-500 hover:text-gray-800 hover:underline"
+                className="text-xs font-mono tabular-nums text-fg-subtle hover:text-fg-muted transition-colors duration-150"
               >
                 {usageCount} AI {usageCount === 1 ? "call" : "calls"} ·{" "}
                 {formatTokens(totalTokens)} tokens ·{" "}
@@ -100,31 +106,32 @@ export default async function DashboardPage({
               </Link>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <a
-              href="/api/jobs/export"
-              className="px-4 py-2 border rounded-md text-sm hover:bg-gray-50"
-            >
+          <div className="flex items-center gap-2 shrink-0">
+            <a href="/api/jobs/export" className={navButtonClass}>
               Export CSV
             </a>
-            <Link
-              href="/dashboard/resumes"
-              className="px-4 py-2 border rounded-md text-sm hover:bg-gray-50"
-            >
+            <Link href="/dashboard/resumes" className={navButtonClass}>
               Resumes
             </Link>
             <form action={logout}>
-              <SubmitButton className="px-4 py-2 border rounded-md text-sm disabled:opacity-50">
+              <SubmitButton
+                className={`${navButtonClass} disabled:opacity-50`}
+                pendingLabel="Signing out…"
+              >
                 Sign out
               </SubmitButton>
             </form>
           </div>
         </div>
 
+        {/* Resume warning */}
         {!defaultResume && (
-          <div className="border border-yellow-200 bg-yellow-50 text-yellow-900 rounded-md px-3 py-2 text-sm">
+          <div className="rounded-lg border border-accent/20 bg-accent-soft px-3 py-2 text-sm text-fg-muted">
             Add a resume to enable match scoring.{" "}
-            <Link href="/dashboard/resumes" className="underline">
+            <Link
+              href="/dashboard/resumes"
+              className="text-accent hover:text-accent/80 underline underline-offset-2"
+            >
               Add one now
             </Link>
             .
@@ -140,45 +147,57 @@ export default async function DashboardPage({
           active={active}
         />
 
-        <div className="space-y-4">
-          {jobs.length === 0 && filter.attention && (
-            <p className="text-sm text-gray-500">
-              Nothing needs follow-up right now. Nice work.
-            </p>
+        {/* Job list */}
+        <div className="space-y-3">
+          {jobs.length === 0 && (
+            <div className="py-16 text-center">
+              {filter.attention ? (
+                <p className="text-sm text-fg-muted">
+                  Nothing needs follow-up right now. Nice work.
+                </p>
+              ) : filter.archived ? (
+                <p className="text-sm text-fg-muted">No archived jobs.</p>
+              ) : isFiltered ? (
+                <div className="space-y-2">
+                  <p className="text-sm text-fg-muted">
+                    No jobs match this filter.
+                  </p>
+                  <Link
+                    href="/dashboard"
+                    className="text-xs text-accent hover:text-accent/80 transition-colors duration-150"
+                  >
+                    Clear filters →
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p
+                    className="text-4xl text-fg-subtle select-none"
+                    aria-hidden
+                  >
+                    ↑
+                  </p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-fg-muted">
+                      No jobs saved yet.
+                    </p>
+                    <p className="text-xs text-fg-subtle">
+                      Paste a job posting URL above to get started.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
-          {jobs.length === 0 &&
-            !filter.attention &&
-            !isFiltered &&
-            !filter.archived && (
-              <p className="text-sm text-gray-500">
-                No jobs saved yet. Paste a URL above to get started.
-              </p>
-            )}
-          {jobs.length === 0 &&
-            !filter.attention &&
-            !isFiltered &&
-            filter.archived && (
-              <p className="text-sm text-gray-500">No archived jobs.</p>
-            )}
-          {jobs.length === 0 && !filter.attention && isFiltered && (
-            <p className="text-sm text-gray-500">
-              No jobs match this filter.{" "}
-              <Link
-                href={`/dashboard`}
-                className="underline"
-              >
-                Clear filters
-              </Link>
-              .
-            </p>
-          )}
-          {jobs.map((job) => (
-            <JobCard
+
+          {jobs.map((job, i) => (
+            <div
               key={job.id}
-              job={job}
-              archived={filter.archived}
-              now={now}
-            />
+              className="motion-fade-up"
+              style={{ animationDelay: `${Math.min(i, 7) * 60}ms` }}
+            >
+              <JobCard job={job} archived={filter.archived} now={now} />
+            </div>
           ))}
         </div>
       </div>

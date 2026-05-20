@@ -1,5 +1,11 @@
 export function scoreColor(score: number): string {
-  if (score >= 75) return "text-green-700 bg-green-50";
-  if (score >= 50) return "text-yellow-700 bg-yellow-50";
-  return "text-gray-700 bg-gray-100";
+  if (score >= 75) return "text-positive bg-positive-soft";
+  if (score >= 50) return "text-accent bg-accent-soft";
+  return "text-fg-muted bg-surface-2";
+}
+
+export function scoreRingColor(score: number): string {
+  if (score >= 75) return "var(--positive)";
+  if (score >= 50) return "var(--accent)";
+  return "var(--fg-subtle)";
 }

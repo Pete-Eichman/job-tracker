@@ -1,26 +1,105 @@
 @import "tailwindcss";
 
+/* ─── Design tokens ─────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Surface palette — dark by default */
+  --bg: #0b0b0d;
+  --surface: #141418;
+  --surface-2: #1c1c22;
+  --border: #26262d;
+  --border-strong: #3a3a44;
+
+  /* Typography */
+  --fg: #ededee;
+  --fg-muted: #a0a0a8;
+  --fg-subtle: #6a6a72;
+
+  /* Accent — warm amber */
+  --accent: oklch(0.78 0.15 65);
+  --accent-fg: #0b0b0d;
+  --accent-soft: oklch(0.78 0.15 65 / 0.12);
+
+  /* Semantic palette */
+  --positive: oklch(0.74 0.18 142);
+  --positive-soft: oklch(0.74 0.18 142 / 0.12);
+  --danger: oklch(0.64 0.22 25);
+  --danger-soft: oklch(0.64 0.22 25 / 0.12);
+  --warn: oklch(0.83 0.14 84);
+  --warn-soft: oklch(0.83 0.14 84 / 0.10);
+
+  /* Status pill backgrounds (solid for <select> compatibility) */
+  --status-inflight-bg: #231e11;
+  --status-positive-bg: #0e1f14;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --surface-2: #f4f4f5;
+    --border: #e4e4e7;
+    --border-strong: #a1a1aa;
+    --fg: #0b0b0d;
+    --fg-muted: #52525b;
+    --fg-subtle: #a1a1aa;
+    --accent: oklch(0.65 0.18 65);
+    --accent-fg: #ffffff;
+    --positive: oklch(0.45 0.16 142);
+    --positive-soft: oklch(0.45 0.16 142 / 0.10);
+    --danger: oklch(0.50 0.20 25);
+    --danger-soft: oklch(0.50 0.20 25 / 0.08);
+    --status-inflight-bg: #fef3c7;
+    --status-positive-bg: #dcfce7;
   }
 }
 
+/* ─── Tailwind v4 theme wiring ───────────────────────────── */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-positive: var(--positive);
+  --color-positive-soft: var(--positive-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-status-inflight-bg: var(--status-inflight-bg);
+  --color-status-positive-bg: var(--status-positive-bg);
+
+  --font-sans: var(--font-sora);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ─── Base ───────────────────────────────────────────────── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sora), system-ui, sans-serif;
+}
+
+/* ─── Motion ─────────────────────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .motion-fade-up {
+    animation: fade-up 240ms ease-out both;
+  }
 }

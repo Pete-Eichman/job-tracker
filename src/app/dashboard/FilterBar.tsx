@@ -26,43 +26,63 @@ interface Props {
   active: ReturnType<typeof activePreset>;
 }
 
+const activePill =
+  "bg-accent text-accent-fg border-accent";
+const inactivePill =
+  "text-fg-muted border-border hover:text-fg hover:bg-surface-2";
+
 export function FilterBar({ filter, sort, hiddenStatus, active }: Props) {
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap gap-2 items-center text-xs">
-        <span className="text-gray-500">View:</span>
-        <Link
-          href={viewHref(false, filter.statuses, filter.query, sort, filter.attention)}
-          className={`px-3 py-1 rounded-full border ${
-            !filter.archived
-              ? "bg-black text-white border-black"
-              : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-          }`}
-        >
-          Active
-        </Link>
-        <Link
-          href={viewHref(true, filter.statuses, filter.query, sort, filter.attention)}
-          className={`px-3 py-1 rounded-full border ${
-            filter.archived
-              ? "bg-black text-white border-black"
-              : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-          }`}
-        >
-          Archived
-        </Link>
-      </div>
-      <div className="flex flex-wrap gap-2">
+    <div className="rounded-xl border border-border bg-surface p-3 space-y-2.5">
+      {/* Row 1: View toggle + status presets */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {/* Segmented view toggle */}
+        <div className="flex rounded-lg overflow-hidden border border-border text-xs shrink-0">
+          <Link
+            href={viewHref(
+              false,
+              filter.statuses,
+              filter.query,
+              sort,
+              filter.attention
+            )}
+            className={`px-3 py-1.5 transition-colors duration-150 ${
+              !filter.archived
+                ? "bg-accent text-accent-fg"
+                : "text-fg-muted hover:text-fg hover:bg-surface-2"
+            }`}
+          >
+            Active
+          </Link>
+          <Link
+            href={viewHref(
+              true,
+              filter.statuses,
+              filter.query,
+              sort,
+              filter.attention
+            )}
+            className={`px-3 py-1.5 border-l border-border transition-colors duration-150 ${
+              filter.archived
+                ? "bg-accent text-accent-fg"
+                : "text-fg-muted hover:text-fg hover:bg-surface-2"
+            }`}
+          >
+            Archived
+          </Link>
+        </div>
+
+        <div className="w-px h-4 bg-border mx-0.5 shrink-0" aria-hidden />
+
+        {/* Status preset pills */}
         {(Object.keys(FILTER_PRESETS) as FilterPreset[]).map((preset) => {
           const isActive = active === preset;
           return (
             <Link
               key={preset}
               href={presetHref(preset, filter.query, sort, filter.archived)}
-              className={`text-xs px-3 py-1 rounded-full border ${
-                isActive
-                  ? "bg-black text-white border-black"
-                  : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+              className={`text-xs px-2.5 py-1 rounded-full border transition-colors duration-150 ${
+                isActive ? activePill : inactivePill
               }`}
             >
               {PRESET_LABELS[preset]}
@@ -70,26 +90,40 @@ export function FilterBar({ filter, sort, hiddenStatus, active }: Props) {
           );
         })}
       </div>
-      <div className="flex flex-wrap gap-2 items-center text-xs">
-        <span className="text-gray-500">Sort:</span>
+
+      {/* Row 2: Sort pills + search */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-[11px] text-fg-subtle uppercase tracking-wide shrink-0">
+          Sort
+        </span>
+
         {JOB_SORT_VALUES.map((value) => {
           const isActive = sort === value;
           return (
             <Link
               key={value}
-              href={sortHref(value, filter.statuses, filter.query, filter.archived, filter.attention)}
-              className={`px-2 py-1 rounded-full border ${
+              href={sortHref(
+                value,
+                filter.statuses,
+                filter.query,
+                filter.archived,
+                filter.attention
+              )}
+              className={`text-xs px-2.5 py-1 rounded-full border transition-colors duration-150 ${
                 isActive
-                  ? "bg-gray-800 text-white border-gray-800"
-                  : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                  ? "text-accent border-accent font-medium"
+                  : inactivePill
               }`}
             >
               {sortLabel(value)}
             </Link>
           );
         })}
+
+        <div className="flex-1" />
+
+        <SearchForm filter={filter} sort={sort} hiddenStatus={hiddenStatus} />
       </div>
-      <SearchForm filter={filter} sort={sort} hiddenStatus={hiddenStatus} />
     </div>
   );
 }

@@ -110,18 +110,18 @@ describe("formatRelativeDays", () => {
 
 describe("stalenessTextColor", () => {
   it("returns muted gray for null", () => {
-    expect(stalenessTextColor(null)).toBe("text-gray-400");
+    expect(stalenessTextColor(null)).toBe("text-fg-subtle");
   });
 
   it("returns slate gray for fresh", () => {
-    expect(stalenessTextColor("fresh")).toBe("text-gray-500");
+    expect(stalenessTextColor("fresh")).toBe("text-fg-subtle");
   });
 
   it("returns amber for aging", () => {
-    expect(stalenessTextColor("aging")).toBe("text-amber-700");
+    expect(stalenessTextColor("aging")).toBe("text-warn");
   });
 
   it("returns red for stale", () => {
-    expect(stalenessTextColor("stale")).toBe("text-red-700");
+    expect(stalenessTextColor("stale")).toBe("text-danger");
   });
 });
