@@ -70,7 +70,17 @@ export async function scoreJob(jobId: string, resumeId?: string): Promise<void> 
   revalidatePath(`/dashboard/jobs/${jobId}`);
 }
 
-export async function rescoreJobAction(formData: FormData): Promise<void> {
-  const { jobId, resumeId } = parseFormData(formData, RescoreSchema);
-  await scoreJob(jobId, resumeId);
+export async function rescoreJobAction(
+  _prev: { error?: string },
+  formData: FormData
+): Promise<{ error?: string }> {
+  try {
+    const { jobId, resumeId } = parseFormData(formData, RescoreSchema);
+    await scoreJob(jobId, resumeId);
+    return {};
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Scoring failed. Please try again.";
+    return { error: message };
+  }
 }
