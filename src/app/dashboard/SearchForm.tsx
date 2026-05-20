@@ -13,7 +13,7 @@ export function SearchForm({ filter, sort, hiddenStatus }: Props) {
   return (
     <form
       action="/dashboard"
-      className="flex items-center gap-1 border border-border rounded-lg bg-bg px-2.5 h-[30px] w-full sm:w-52 focus-within:border-border-strong transition-[border-color] duration-150"
+      className="flex items-center gap-1 border border-border rounded-lg bg-bg px-2.5 h-[30px] flex-1 min-w-0 focus-within:border-border-strong transition-[border-color] duration-150"
     >
       <input type="hidden" name="status" value={hiddenStatus} />
       <input type="hidden" name="sort" value={sort} />
@@ -40,6 +40,7 @@ export function SearchForm({ filter, sort, hiddenStatus }: Props) {
         defaultValue={filter.query}
         placeholder="Search…"
         className="flex-1 bg-transparent border-0 outline-none text-xs text-fg placeholder:text-fg-subtle min-w-0 h-full"
+        style={{ fontSize: "16px" }}
       />
       {filter.query !== "" && (
         <Link

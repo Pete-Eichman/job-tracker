@@ -86,6 +86,15 @@ body {
   font-family: var(--font-sora), system-ui, sans-serif;
 }
 
+/* ─── Utilities ──────────────────────────────────────────── */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* ─── Motion ─────────────────────────────────────────────── */
 @media (prefers-reduced-motion: no-preference) {
   @keyframes fade-up {
