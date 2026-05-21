@@ -11,7 +11,7 @@ export function SaveResumeForm() {
   const [state, formAction] = useActionState(saveResume, {});
 
   return (
-    <form action={formAction} className="space-y-3 bg-surface border border-border rounded-xl p-4">
+    <form action={formAction} encType="multipart/form-data" className="space-y-3 bg-surface border border-border rounded-xl p-4">
       <h2 className="font-medium text-fg">Add a resume</h2>
       <input
         name="title"
@@ -20,9 +20,18 @@ export function SaveResumeForm() {
         placeholder="e.g. Senior Backend Engineer 2025"
         className={inputClass}
       />
+      <div className="space-y-1">
+        <label className="block text-xs font-medium text-fg-subtle">Upload PDF</label>
+        <input
+          name="pdf"
+          type="file"
+          accept="application/pdf"
+          className="block w-full text-sm text-fg file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-border file:bg-surface-2 file:text-fg file:text-sm file:cursor-pointer hover:file:bg-surface-3 transition-colors"
+        />
+      </div>
+      <p className="text-xs text-fg-subtle text-center">— or paste below —</p>
       <textarea
         name="rawText"
-        required
         rows={12}
         placeholder="Paste your resume as plain text…"
         className={`${inputClass} font-mono`}
