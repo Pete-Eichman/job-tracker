@@ -29,6 +29,26 @@ interface Props {
 export function FilterBar({ filter, sort, hiddenStatus, active }: Props) {
   return (
     <div className="rounded-xl border border-border bg-surface p-3 space-y-3">
+      {/* Zone 0: Archived scope toggle — above the status tabs, applies to all of them */}
+      <div>
+        <Link
+          href={viewHref(
+            !filter.archived,
+            filter.statuses,
+            filter.query,
+            sort,
+            filter.attention
+          )}
+          className={`inline-flex items-center px-2.5 py-1 text-xs rounded-md transition-colors duration-150 ${
+            filter.archived
+              ? "bg-accent-soft text-accent font-medium"
+              : "text-fg-muted hover:text-fg hover:bg-surface-2"
+          }`}
+        >
+          Archived
+        </Link>
+      </div>
+
       {/* Zone 1: Status tab strip — scrolls horizontally, never wraps */}
       <div className="relative">
         <div className="flex overflow-x-auto no-scrollbar gap-0.5 py-0.5">
@@ -51,54 +71,14 @@ export function FilterBar({ filter, sort, hiddenStatus, active }: Props) {
         </div>
         {/* Right-edge gradient hints at more tabs to scroll */}
         <div
-          className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-surface to-transparent"
+          className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-surface to-transparent"
           aria-hidden
         />
       </div>
 
-      {/* Zones 2 + 3: portrait = two rows (toggle+sort / search); desktop = single row */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        {/* Row 1 on portrait, left group on desktop: toggle + sort */}
-        <div className="flex items-center gap-2">
-          {/* Active / Archived scope toggle — hugs its two segments */}
-          <div className="flex w-fit rounded-lg overflow-hidden border border-border text-xs shrink-0">
-            <Link
-              href={viewHref(
-                false,
-                filter.statuses,
-                filter.query,
-                sort,
-                filter.attention
-              )}
-              className={`px-3 py-1.5 transition-colors duration-150 ${
-                !filter.archived
-                  ? "bg-accent text-accent-fg"
-                  : "text-fg-muted hover:text-fg hover:bg-surface-2"
-              }`}
-            >
-              Active
-            </Link>
-            <Link
-              href={viewHref(
-                true,
-                filter.statuses,
-                filter.query,
-                sort,
-                filter.attention
-              )}
-              className={`px-3 py-1.5 border-l border-border transition-colors duration-150 ${
-                filter.archived
-                  ? "bg-accent text-accent-fg"
-                  : "text-fg-muted hover:text-fg hover:bg-surface-2"
-              }`}
-            >
-              Archived
-            </Link>
-          </div>
-          <SortSelect sort={sort} filter={filter} />
-        </div>
-
-        {/* Row 2 on portrait (full-width), flex-1 on desktop */}
+      {/* Zone 2: sort compact, search fills remaining width */}
+      <div className="flex items-center gap-2">
+        <SortSelect sort={sort} filter={filter} />
         <SearchForm filter={filter} sort={sort} hiddenStatus={hiddenStatus} />
       </div>
     </div>

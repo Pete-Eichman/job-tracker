@@ -126,15 +126,14 @@ export default async function DashboardPage({
 
         {/* Resume warning */}
         {!defaultResume && (
-          <div className="rounded-lg border border-accent/20 bg-accent-soft px-3 py-2 text-sm text-fg-muted">
-            Add a resume to enable match scoring.{" "}
+          <div className="rounded-lg border border-accent/20 bg-accent-soft px-3 py-2 text-sm text-fg-muted flex flex-col sm:flex-row sm:items-center sm:gap-1">
+            <span>Add a resume to enable match scoring.</span>
             <Link
               href="/dashboard/resumes"
               className="text-accent hover:text-accent/80 underline underline-offset-2"
             >
-              Add one now
+              Add one now.
             </Link>
-            .
           </div>
         )}
 

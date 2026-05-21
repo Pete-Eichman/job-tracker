@@ -17,7 +17,7 @@ export function SortSelect({ sort, filter }: Props) {
     <div className="flex items-center gap-1.5 shrink-0">
       <label
         htmlFor="sort-select"
-        className="text-[11px] text-fg-subtle uppercase tracking-wide whitespace-nowrap"
+        className="hidden sm:block text-[11px] text-fg-subtle uppercase tracking-wide whitespace-nowrap"
       >
         Sort
       </label>
