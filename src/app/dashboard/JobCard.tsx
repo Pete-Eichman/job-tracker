@@ -96,7 +96,7 @@ export function JobCard({ job, archived, now }: Props) {
   const staleness = jobStaleness(job.status, job.updatedAt);
 
   return (
-    <div className="bg-surface border border-border rounded-xl p-5 space-y-3 hover:bg-surface-2 hover:border-border-strong transition-colors duration-200">
+    <div className="bg-surface border border-border rounded-xl p-4 sm:p-5 space-y-3 hover:bg-surface-2 hover:border-border-strong transition-colors duration-200">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0 space-y-0.5">
           <Link
@@ -117,7 +117,7 @@ export function JobCard({ job, archived, now }: Props) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 shrink-0">
           {needsAttention(job.status, job.updatedAt, now) && (
             <span
               className="text-xs px-2 py-0.5 rounded-full bg-accent-soft text-accent border border-accent/20 font-medium"
@@ -133,7 +133,7 @@ export function JobCard({ job, archived, now }: Props) {
       </div>
 
       {job.requiredSkills.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-x-2 gap-y-1.5">
           {job.requiredSkills.map((skill: string) => (
             <span
               key={skill}
