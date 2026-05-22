@@ -36,7 +36,7 @@ export function EditJobForm({
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="jobId" value={jobId} />
       <div className="grid sm:grid-cols-2 gap-4">
-        <label className="space-y-1 block">
+        <label className="space-y-1 block min-w-0">
           <span className="text-sm font-medium text-fg">Status</span>
           <select
             name="status"
@@ -50,7 +50,7 @@ export function EditJobForm({
             ))}
           </select>
         </label>
-        <label className="space-y-1 block">
+        <label className="space-y-1 block min-w-0">
           <span className="text-sm font-medium text-fg">Applied on</span>
           <input
             type="date"

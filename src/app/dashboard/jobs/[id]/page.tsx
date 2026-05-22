@@ -86,8 +86,8 @@ export default async function JobDetailPage({
           ← Back to dashboard
         </Link>
 
-        <div className="space-y-2">
-          <div>
+        <div className="space-y-3">
+          <div className="space-y-0.5">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-2xl font-semibold text-fg">{job.title}</h1>
               {job.archivedAt && (
