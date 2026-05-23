@@ -68,16 +68,17 @@ model Job {
 }
 
 model Match {
-  id        String   @id @default(cuid())
-  jobId     String
-  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  resumeId  String
-  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-  score     Int
-  reasoning String
-  gaps      String[]
-  strengths String[]
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  jobId       String
+  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resumeId    String
+  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  score       Int
+  reasoning   String
+  gaps        String[]
+  strengths   String[]
+  explanation Json?
+  createdAt   DateTime @default(now())
 
   @@unique([jobId, resumeId])
 }

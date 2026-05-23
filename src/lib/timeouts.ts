@@ -2,6 +2,7 @@ export const TIMEOUTS = {
   pageFetch: 15_000,
   jobExtract: 60_000,
   matchScore: 60_000,
+  matchExplain: 60_000,
   coverLetter: 90_000,
 } as const;
 

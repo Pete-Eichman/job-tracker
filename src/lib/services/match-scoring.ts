@@ -1,9 +1,10 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 import { z } from "zod";
-import type { JobModel, ResumeModel } from "@/generated/prisma/models";
+import type { ResumeModel } from "@/generated/prisma/models";
 import { TIMEOUTS, isAbortLike, timeoutError } from "@/lib/timeouts";
 import { AI_MODELS } from "@/lib/ai-models";
+import { buildJobBrief, type JobForBrief } from "@/lib/services/job-brief";
 
 const MatchSchema = z.object({
   score: z
@@ -40,54 +41,15 @@ export type ScoringUsage = {
   outputTokens: number;
 };
 
-type JobForMatching = Pick<
-  JobModel,
-  | "title"
-  | "company"
-  | "location"
-  | "workMode"
-  | "seniority"
-  | "requiredSkills"
-  | "niceToHaveSkills"
-  | "responsibilities"
-  | "salaryMin"
-  | "salaryMax"
-  | "salaryCurrency"
->;
+type JobForMatching = JobForBrief;
 
 type ResumeForMatching = Pick<ResumeModel, "rawText">;
-
-function formatSalary(job: JobForMatching): string {
-  if (job.salaryMin == null && job.salaryMax == null) return "Not specified";
-  const cur = job.salaryCurrency ?? "";
-  const min = job.salaryMin?.toNumber().toLocaleString() ?? "?";
-  const max = job.salaryMax?.toNumber().toLocaleString() ?? "?";
-  return `${cur} ${min} - ${max}`.trim();
-}
 
 export async function scoreJobAgainstResume(
   job: JobForMatching,
   resume: ResumeForMatching
 ): Promise<{ result: ScoredMatch; usage: ScoringUsage }> {
-  const jobBrief = [
-    `Title: ${job.title}`,
-    `Company: ${job.company}`,
-    job.location ? `Location: ${job.location}` : null,
-    job.workMode ? `Work mode: ${job.workMode}` : null,
-    job.seniority ? `Seniority: ${job.seniority}` : null,
-    `Salary: ${formatSalary(job)}`,
-    job.requiredSkills.length
-      ? `Required skills: ${job.requiredSkills.join(", ")}`
-      : null,
-    job.niceToHaveSkills.length
-      ? `Nice-to-have skills: ${job.niceToHaveSkills.join(", ")}`
-      : null,
-    job.responsibilities.length
-      ? `Responsibilities:\n- ${job.responsibilities.join("\n- ")}`
-      : null,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  const jobBrief = buildJobBrief(job);
 
   // Job fields and resume.rawText are concatenated directly into the prompt.
   // Safe here because generateObject enforces MatchSchema — injected instructions
