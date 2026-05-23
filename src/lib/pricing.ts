@@ -35,6 +35,7 @@ export function formatTokens(n: number): string {
 const OPERATION_LABELS: Record<string, string> = {
   job_extract: "Job extracts",
   match_score: "Match scores",
+  match_explanation: "Match explanations",
   cover_letter: "Cover letters",
 };
 
