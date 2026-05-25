@@ -83,7 +83,7 @@ export default async function JobDetailPage({
     <div className="min-h-screen px-4 py-6 sm:p-8">
       <div className="max-w-3xl mx-auto space-y-6">
         <Link href="/dashboard" className={navButtonClass}>
-          ← Back to dashboard
+          ← Back
         </Link>
 
         <div className="space-y-3">
