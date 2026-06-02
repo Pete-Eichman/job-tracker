@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@/generated/prisma/client";
 import { scoreJobAgainstResume } from "@/lib/services/match-scoring";
 import { parseFormData } from "@/lib/forms";
 import { computeCostCents } from "@/lib/pricing";
@@ -47,6 +48,7 @@ export async function scoreJob(jobId: string, resumeId?: string): Promise<void> 
       reasoning: result.reasoning,
       gaps: result.gaps,
       strengths: result.strengths,
+      explanation: Prisma.DbNull,
     },
   });
 

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { RescoreButton } from "./RescoreButton";
+import { ExplainButton } from "./ExplainButton";
 import { EditJobForm } from "./EditJobForm";
 import { DeleteCoverLetterButton } from "./DeleteCoverLetterButton";
 import { ArchiveButton } from "@/app/dashboard/ArchiveButton";
@@ -11,9 +12,79 @@ import { pickResumeId } from "@/lib/job-resume";
 import { buildMatchComparison } from "@/lib/match-comparison";
 import { formatSpend } from "@/lib/pricing";
 import { scoreColor } from "@/lib/score-color";
+import { ExplanationSchema, type MatchExplanation } from "@/lib/services/match-explanation";
 
 const navButtonClass =
   "px-3 py-1.5 border border-border rounded-lg text-xs text-fg-muted hover:text-fg hover:bg-surface-2 transition-colors duration-150";
+
+const GAP_TYPE_META = {
+  vocabulary: {
+    label: "Quick fix — reword",
+    className: "bg-positive-soft text-positive border-positive/20",
+  },
+  closable: {
+    label: "Acquirable",
+    className: "bg-accent-soft text-accent border-accent/20",
+  },
+  hard: {
+    label: "Real barrier",
+    className: "bg-danger-soft text-danger border-danger/20",
+  },
+} as const;
+
+function ExplanationBlock({ explanation }: { explanation: MatchExplanation }) {
+  return (
+    <div className="space-y-4">
+      {explanation.overall_note && (
+        <p className="text-sm text-fg-muted leading-relaxed">
+          {explanation.overall_note}
+        </p>
+      )}
+      {explanation.gaps.length === 0 ? (
+        <p className="text-xs text-fg-subtle">
+          No significant gaps identified — strong match.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {explanation.gaps.map((gap, i) => {
+            const meta = GAP_TYPE_META[gap.type];
+            return (
+              <div
+                key={i}
+                className="bg-surface-2 border border-border rounded-lg p-3 space-y-2"
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full border font-medium ${meta.className}`}
+                  >
+                    {meta.label}
+                  </span>
+                  <span className="text-xs text-fg-subtle font-medium">
+                    {gap.requirement}
+                  </span>
+                  {gap.hedge && (
+                    <span className="text-xs text-fg-subtle italic">
+                      commonly flexed
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-fg-muted leading-relaxed">
+                  {gap.finding}
+                </p>
+                <div className="flex gap-2 pt-0.5">
+                  <span className="text-xs text-fg-subtle shrink-0 pt-0.5">
+                    →
+                  </span>
+                  <p className="text-sm text-fg leading-relaxed">{gap.action}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default async function JobDetailPage({
   params,
@@ -226,11 +297,20 @@ export default async function JobDetailPage({
                 : "Match"}
             </h2>
             {selectedResume ? (
-              <RescoreButton
-                jobId={job.id}
-                resumeId={selectedResume.id}
-                hasMatch={!!match}
-              />
+              <div className="flex items-center gap-2 flex-wrap justify-end">
+                <RescoreButton
+                  jobId={job.id}
+                  resumeId={selectedResume.id}
+                  hasMatch={!!match}
+                />
+                {match && (
+                  <ExplainButton
+                    jobId={job.id}
+                    resumeId={selectedResume.id}
+                    hasExplanation={match.explanation != null}
+                  />
+                )}
+              </div>
             ) : (
               <Link href="/dashboard/resumes" className={navButtonClass}>
                 Add a resume
@@ -251,38 +331,54 @@ export default async function JobDetailPage({
               <p className="text-sm text-fg-muted leading-relaxed">
                 {match.reasoning}
               </p>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="text-sm font-medium text-fg mb-2">Strengths</h3>
-                  {match.strengths.length === 0 ? (
-                    <p className="text-xs text-fg-subtle">None identified.</p>
-                  ) : (
-                    <ul className="space-y-1 text-sm">
-                      {match.strengths.map((s, i) => (
-                        <li key={i} className="flex gap-2">
-                          <span className="text-positive">+</span>
-                          <span className="text-fg-muted">{s}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-fg mb-2">Gaps</h3>
-                  {match.gaps.length === 0 ? (
-                    <p className="text-xs text-fg-subtle">None identified.</p>
-                  ) : (
-                    <ul className="space-y-1 text-sm">
-                      {match.gaps.map((g, i) => (
-                        <li key={i} className="flex gap-2">
-                          <span className="text-warn">−</span>
-                          <span className="text-fg-muted">{g}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
+              {(() => {
+                const parsed = ExplanationSchema.safeParse(match.explanation);
+                const explanation: MatchExplanation | null = parsed.success
+                  ? parsed.data
+                  : null;
+                return explanation ? (
+                  <ExplanationBlock explanation={explanation} />
+                ) : (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-fg mb-2">
+                        Strengths
+                      </h3>
+                      {match.strengths.length === 0 ? (
+                        <p className="text-xs text-fg-subtle">
+                          None identified.
+                        </p>
+                      ) : (
+                        <ul className="space-y-1 text-sm">
+                          {match.strengths.map((s, i) => (
+                            <li key={i} className="flex gap-2">
+                              <span className="text-positive">+</span>
+                              <span className="text-fg-muted">{s}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-fg mb-2">Gaps</h3>
+                      {match.gaps.length === 0 ? (
+                        <p className="text-xs text-fg-subtle">
+                          None identified.
+                        </p>
+                      ) : (
+                        <ul className="space-y-1 text-sm">
+                          {match.gaps.map((g, i) => (
+                            <li key={i} className="flex gap-2">
+                              <span className="text-warn">−</span>
+                              <span className="text-fg-muted">{g}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
               <p className="text-xs text-fg-subtle">
                 Scored {match.createdAt.toLocaleString()}
               </p>
