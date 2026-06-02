@@ -95,6 +95,16 @@ body {
   display: none;
 }
 
+/* ─── Date input placeholder ─────────────────────────────── */
+/* Suppress Chrome/Edge/Safari's own empty-state date text so the
+   React overlay span shows cleanly without doubling up. */
+input[type="date"].date-empty:not(:focus)::-webkit-datetime-edit-text,
+input[type="date"].date-empty:not(:focus)::-webkit-datetime-edit-month-field,
+input[type="date"].date-empty:not(:focus)::-webkit-datetime-edit-day-field,
+input[type="date"].date-empty:not(:focus)::-webkit-datetime-edit-year-field {
+  color: transparent;
+}
+
 /* ─── Motion ─────────────────────────────────────────────── */
 @media (prefers-reduced-motion: no-preference) {
   @keyframes fade-up {

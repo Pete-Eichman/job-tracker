@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { updateJobAction } from "@/app/actions/update-job";
 import { SubmitButton } from "@/components/SubmitButton";
 import { JOB_STATUS_VALUES, statusLabel } from "@/lib/job-status";
@@ -30,6 +30,7 @@ export function EditJobForm({
   updatedAt,
 }: Props) {
   const [state, formAction] = useActionState(updateJobAction, {});
+  const [appliedAtHasValue, setAppliedAtHasValue] = useState(!!appliedAt);
   const updatedAtDate = new Date(updatedAt);
 
   return (
@@ -52,12 +53,23 @@ export function EditJobForm({
         </label>
         <label className="space-y-1 block min-w-0">
           <span className="text-sm font-medium text-fg">Applied on</span>
-          <input
-            type="date"
-            name="appliedAt"
-            defaultValue={appliedAt ?? ""}
-            className={inputClass}
-          />
+          <div className="relative group">
+            <input
+              type="date"
+              name="appliedAt"
+              defaultValue={appliedAt ?? ""}
+              onChange={(e) => setAppliedAtHasValue(!!e.target.value)}
+              className={`${inputClass}${!appliedAtHasValue ? " date-empty" : ""}`}
+            />
+            {!appliedAtHasValue && (
+              <span
+                aria-hidden="true"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-fg-subtle pointer-events-none select-none group-focus-within:hidden"
+              >
+                mm/dd/yyyy
+              </span>
+            )}
+          </div>
           <span className="text-xs text-fg-subtle block">
             Auto-set to today when you first move past Saved.
           </span>
