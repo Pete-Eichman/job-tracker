@@ -11,6 +11,7 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "backfill:costs": "tsx scripts/backfill-costs.ts",
+    "eval": "tsx --tsconfig tsconfig.json eval/run.ts",
     "eval:explanation": "tsx --tsconfig tsconfig.json scripts/eval-explanation.ts",
     "postinstall": "prisma generate"
   },
