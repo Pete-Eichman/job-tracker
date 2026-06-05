@@ -1,8 +1,9 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { generateObject } from "ai";
 import { z } from "zod";
 import { TIMEOUTS, isAbortLike, timeoutError } from "@/lib/timeouts";
 import { AI_MODELS } from "@/lib/ai-models";
+import { generateObjectWithRepair } from "@/lib/ai/generate-with-repair";
+import { assertLooksLikeJobPosting } from "@/lib/services/scrape-guard";
 
 const JobSchema = z.object({
   title: z.string(),
@@ -23,6 +24,7 @@ export type ExtractedJob = z.infer<typeof JobSchema>;
 export type ExtractionUsage = {
   inputTokens: number;
   outputTokens: number;
+  repaired: boolean;
 };
 
 export function stripHtml(html: string): string {
@@ -42,7 +44,12 @@ export async function fetchPageText(url: string): Promise<string> {
       signal: AbortSignal.timeout(TIMEOUTS.pageFetch),
     });
     if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
-    return stripHtml(await res.text());
+    const strippedText = stripHtml(await res.text());
+    assertLooksLikeJobPosting({
+      contentType: res.headers.get("content-type"),
+      strippedText,
+    });
+    return strippedText;
   } catch (err) {
     if (isAbortLike(err)) {
       throw timeoutError("Job posting fetch", TIMEOUTS.pageFetch);
@@ -55,7 +62,7 @@ export async function extractJobFromText(
   rawText: string
 ): Promise<{ result: ExtractedJob; usage: ExtractionUsage }> {
   try {
-    const { object, usage } = await generateObject({
+    const { object, usage, repaired } = await generateObjectWithRepair({
       model: anthropic(AI_MODELS.default),
       schema: JobSchema,
       prompt: `Extract structured job posting information from the following text. For salary, extract numbers only (no currency symbols). For workMode, use REMOTE, HYBRID, or ONSITE only if clearly stated.\n\n${rawText}`,
@@ -64,8 +71,9 @@ export async function extractJobFromText(
     return {
       result: object,
       usage: {
-        inputTokens: usage.inputTokens ?? 0,
-        outputTokens: usage.outputTokens ?? 0,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+        repaired,
       },
     };
   } catch (err) {
