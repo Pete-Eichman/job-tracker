@@ -7,6 +7,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { scoreJobAgainstResume } from "@/lib/services/match-scoring";
 import { parseFormData } from "@/lib/forms";
 import { computeCostCents } from "@/lib/pricing";
+import { sha256Hex } from "@/lib/hash";
 import { AI_MODELS } from "@/lib/ai-models";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -16,7 +17,11 @@ const RescoreSchema = z.object({
   resumeId: z.string().optional(),
 });
 
-export async function scoreJob(jobId: string, resumeId?: string): Promise<void> {
+export async function scoreJob(
+  jobId: string,
+  resumeId?: string,
+  opts?: { extractionRepaired?: boolean }
+): Promise<void> {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
   const userId = session.user.id;
@@ -29,43 +34,106 @@ export async function scoreJob(jobId: string, resumeId?: string): Promise<void> 
   const resume = resumeId
     ? await prisma.resume.findFirst({ where: { id: resumeId, userId } })
     : await prisma.resume.findFirst({ where: { userId, isDefault: true } });
-  if (!resume) throw new Error("Resume not found. Add a resume to enable match scoring.");
+  if (!resume)
+    throw new Error("Resume not found. Add a resume to enable match scoring.");
 
-  const { result, usage } = await scoreJobAgainstResume(job, resume);
+  const contentHash = sha256Hex(job.rawText);
+  const extractedJob = {
+    title: job.title,
+    company: job.company,
+    location: job.location,
+    workMode: job.workMode,
+    seniority: job.seniority,
+    requiredSkills: job.requiredSkills,
+    niceToHaveSkills: job.niceToHaveSkills,
+    responsibilities: job.responsibilities,
+    salaryMin: job.salaryMin ? Number(job.salaryMin) : null,
+    salaryMax: job.salaryMax ? Number(job.salaryMax) : null,
+    salaryCurrency: job.salaryCurrency,
+  };
 
-  await prisma.match.upsert({
-    where: { jobId_resumeId: { jobId: job.id, resumeId: resume.id } },
-    create: {
-      jobId: job.id,
-      resumeId: resume.id,
-      score: result.score,
-      reasoning: result.reasoning,
-      gaps: result.gaps,
-      strengths: result.strengths,
-    },
-    update: {
-      score: result.score,
-      reasoning: result.reasoning,
-      gaps: result.gaps,
-      strengths: result.strengths,
-      explanation: Prisma.DbNull,
-    },
-  });
+  const start = Date.now();
 
-  await prisma.aiUsage.create({
-    data: {
-      userId,
-      jobId,
-      operation: "match_score",
-      model: AI_MODELS.default,
-      inputTokens: usage.inputTokens,
-      outputTokens: usage.outputTokens,
-      costCents: computeCostCents(
-        AI_MODELS.default,
-        usage.inputTokens,
-        usage.outputTokens
-      ),
-    },
+  const scoringOutcome = await scoreJobAgainstResume(job, resume).catch(
+    async (err: unknown) => {
+      await prisma.scoringRun.create({
+        data: {
+          userId,
+          jobId: job.id,
+          resumeId: resume.id,
+          status: "FAILED",
+          sourceUrl: job.sourceUrl,
+          contentHash,
+          extractedJob,
+          modelId: AI_MODELS.default,
+          latencyMs: Date.now() - start,
+          errorReason: err instanceof Error ? err.message : "Unknown scoring error",
+        },
+      });
+      throw err;
+    }
+  );
+
+  const { result, usage } = scoringOutcome;
+  const latencyMs = Date.now() - start;
+  const repaired = usage.repaired || (opts?.extractionRepaired ?? false);
+  const status = repaired ? ("REPAIRED" as const) : ("SUCCESS" as const);
+  const costCents = computeCostCents(
+    AI_MODELS.default,
+    usage.inputTokens,
+    usage.outputTokens
+  );
+
+  await prisma.$transaction(async (tx) => {
+    const match = await tx.match.upsert({
+      where: { jobId_resumeId: { jobId: job.id, resumeId: resume.id } },
+      create: {
+        jobId: job.id,
+        resumeId: resume.id,
+        score: result.score,
+        reasoning: result.reasoning,
+        gaps: result.gaps,
+        strengths: result.strengths,
+      },
+      update: {
+        score: result.score,
+        reasoning: result.reasoning,
+        gaps: result.gaps,
+        strengths: result.strengths,
+        explanation: Prisma.DbNull,
+      },
+    });
+
+    await tx.scoringRun.create({
+      data: {
+        userId,
+        jobId: job.id,
+        resumeId: resume.id,
+        matchId: match.id,
+        status,
+        sourceUrl: job.sourceUrl,
+        contentHash,
+        extractedJob,
+        score: result.score,
+        modelId: AI_MODELS.default,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+        costCents,
+        latencyMs,
+      },
+    });
+
+    await tx.aiUsage.create({
+      data: {
+        userId,
+        jobId,
+        operation: "match_score",
+        model: AI_MODELS.default,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+        costCents,
+      },
+    });
   });
 
   revalidatePath("/dashboard");

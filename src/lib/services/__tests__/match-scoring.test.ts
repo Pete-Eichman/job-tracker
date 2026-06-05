@@ -82,7 +82,9 @@ describe("scoreJobAgainstResume", () => {
       usage: {},
     });
     const { usage } = await scoreJobAgainstResume(baseJob, baseResume);
-    expect(usage).toEqual({ inputTokens: 0, outputTokens: 0 });
+    expect(usage.inputTokens).toBe(0);
+    expect(usage.outputTokens).toBe(0);
+    expect(usage.repaired).toBe(false);
   });
 
   it("rethrows a friendly timeout error when the SDK aborts", async () => {
@@ -100,9 +102,9 @@ describe("scoreJobAgainstResume", () => {
     expect(args.abortSignal).toBeInstanceOf(AbortSignal);
   });
 
-  it("lets non-abort errors bubble up unchanged", async () => {
+  it("lets non-abort errors bubble up unchanged after retries are exhausted", async () => {
     const sdkError = new Error("server error");
-    generateObjectMock.mockRejectedValueOnce(sdkError);
+    generateObjectMock.mockRejectedValue(sdkError);
     await expect(scoreJobAgainstResume(baseJob, baseResume)).rejects.toBe(
       sdkError
     );

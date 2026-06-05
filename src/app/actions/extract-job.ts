@@ -63,7 +63,9 @@ export async function extractAndSaveJob(
     });
     if (defaultResume) {
       try {
-        await scoreJob(job.id);
+        await scoreJob(job.id, undefined, {
+          extractionRepaired: usage.repaired,
+        });
       } catch (err) {
         console.error("Auto-score failed for job", job.id, err);
       }

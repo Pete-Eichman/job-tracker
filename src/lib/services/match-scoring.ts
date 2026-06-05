@@ -1,10 +1,10 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { generateObject } from "ai";
 import { z } from "zod";
 import type { ResumeModel } from "@/generated/prisma/models";
 import { TIMEOUTS, isAbortLike, timeoutError } from "@/lib/timeouts";
 import { AI_MODELS } from "@/lib/ai-models";
 import { buildJobBrief, type JobForBrief } from "@/lib/services/job-brief";
+import { generateObjectWithRepair } from "@/lib/ai/generate-with-repair";
 
 const MatchSchema = z.object({
   score: z
@@ -39,6 +39,7 @@ export type ScoredMatch = z.infer<typeof MatchSchema>;
 export type ScoringUsage = {
   inputTokens: number;
   outputTokens: number;
+  repaired: boolean;
 };
 
 type JobForMatching = JobForBrief;
@@ -71,7 +72,7 @@ ${jobBrief}
 ${resume.rawText}`;
 
   try {
-    const { object, usage } = await generateObject({
+    const { object, usage, repaired } = await generateObjectWithRepair({
       model: anthropic(AI_MODELS.default),
       schema: MatchSchema,
       prompt,
@@ -81,8 +82,9 @@ ${resume.rawText}`;
     return {
       result: object,
       usage: {
-        inputTokens: usage.inputTokens ?? 0,
-        outputTokens: usage.outputTokens ?? 0,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+        repaired,
       },
     };
   } catch (err) {
