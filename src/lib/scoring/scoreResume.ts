@@ -1,4 +1,16 @@
-import { anthropic } from "@ai-sdk/anthropic";
+import { createAnthropic } from "@ai-sdk/anthropic";
+
+// @ai-sdk/anthropic v3 appends endpoint paths directly to its baseURL (e.g.
+// /messages), so it expects a /v1-prefixed base. The env var ANTHROPIC_BASE_URL
+// is sometimes set to the domain root (https://api.anthropic.com) which is the
+// convention for the raw Anthropic SDK. Normalise it here so both conventions work.
+function resolvedBaseURL(): string | undefined {
+  const raw = process.env.ANTHROPIC_BASE_URL;
+  if (!raw) return undefined; // SDK uses its built-in default — already correct
+  return raw.includes("/v1") ? raw : raw.replace(/\/+$/, "") + "/v1";
+}
+
+const anthropic = createAnthropic({ baseURL: resolvedBaseURL() });
 import { generateObject } from "ai";
 import { TIMEOUTS, isAbortLike, timeoutError } from "@/lib/timeouts";
 import { AI_MODELS } from "@/lib/ai-models";
