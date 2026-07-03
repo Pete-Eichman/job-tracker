@@ -21,6 +21,29 @@ describe("csvCell", () => {
     expect(csvCell(["a,b", "c"])).toBe('"a,b; c"'));
 });
 
+describe("csvCell — formula-injection guard", () => {
+  it("neutralizes a leading = (formula)", () =>
+    expect(csvCell("=HYPERLINK(\"http://evil\")")).toBe(
+      '"\'=HYPERLINK(""http://evil"")"'
+    ));
+  it("neutralizes a leading + ", () =>
+    expect(csvCell("+1+2")).toBe("'+1+2"));
+  it("neutralizes a leading @ ", () =>
+    expect(csvCell("@SUM(A1:A9)")).toBe("'@SUM(A1:A9)"));
+  it("neutralizes a leading - (accepted trade-off for an export)", () =>
+    expect(csvCell("-5")).toBe("'-5"));
+  it("neutralizes a leading tab", () =>
+    expect(csvCell("\t=1")).toBe("'\t=1"));
+  it("neutralizes a leading carriage return", () =>
+    expect(csvCell("\r=1")).toBe("'\r=1"));
+  it("does not touch a dangerous char that is not first", () =>
+    expect(csvCell("Acme = Corp")).toBe("Acme = Corp"));
+  it("leaves an ordinary title untouched", () =>
+    expect(csvCell("Senior Engineer")).toBe("Senior Engineer"));
+  it("applies quoting after prefixing when the cell also has a comma", () =>
+    expect(csvCell("=a,b")).toBe("\"'=a,b\""));
+});
+
 describe("buildCsv", () => {
   it("returns empty string for an empty array", () =>
     expect(buildCsv([])).toBe(""));
