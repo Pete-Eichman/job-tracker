@@ -5,6 +5,8 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { signIn } from "@/lib/auth";
 import { parseFormData } from "@/lib/forms";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/request-ip";
 import { unstable_rethrow } from "next/navigation";
 
 const RegisterSchema = z.object({
@@ -26,6 +28,11 @@ export async function register(
       return { error: error.issues[0]?.message ?? "Enter a valid email and password." };
     }
     return { error: "Enter a valid email and password." };
+  }
+
+  const rate = await enforceRateLimit("auth", await getClientIp());
+  if (!rate.ok) {
+    return { error: "Too many attempts. Please wait a moment and try again." };
   }
 
   const existing = await prisma.user.findUnique({

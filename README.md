@@ -12,12 +12,18 @@ Personal job application tracker with AI-powered match scoring and cover letter 
 ## Required environment variables
 
 ```
-DATABASE_URL=          # PostgreSQL connection string
-AUTH_SECRET=           # NextAuth secret (generate with: openssl rand -base64 32)
-ANTHROPIC_API_KEY=     # Anthropic API key
-AUTH_GITHUB_ID=        # GitHub OAuth app client ID (optional)
-AUTH_GITHUB_SECRET=    # GitHub OAuth app client secret (optional)
+DATABASE_URL=              # PostgreSQL connection string
+AUTH_SECRET=               # NextAuth secret (generate with: openssl rand -base64 32)
+ANTHROPIC_API_KEY=         # Anthropic API key
+AUTH_GITHUB_ID=            # GitHub OAuth app client ID (optional)
+AUTH_GITHUB_SECRET=        # GitHub OAuth app client secret (optional)
+UPSTASH_REDIS_REST_URL=    # Upstash Redis REST URL (rate limiting)
+UPSTASH_REDIS_REST_TOKEN=  # Upstash Redis REST token (rate limiting)
 ```
+
+> Rate limiting (login/register brute-force, AI cost caps) is backed by Upstash
+> Redis. If `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are unset,
+> limiting is **disabled** (the app still runs) — set both in production.
 
 ## Development
 

@@ -18,6 +18,8 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.78",
     "@auth/prisma-adapter": "^2.11.2",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "ai": "^6.0.184",
