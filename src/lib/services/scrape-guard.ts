@@ -3,7 +3,7 @@ const MIN_LENGTH = 200;
 const JOB_SIGNALS = /responsibilit|require|experience|skill|qualif|apply|role/gi;
 const MIN_SIGNAL_MATCHES = 2;
 
-const USER_MESSAGE =
+export const USER_MESSAGE =
   "Could not read this posting — paste the text directly.";
 
 export function assertLooksLikeJobPosting(input: {
