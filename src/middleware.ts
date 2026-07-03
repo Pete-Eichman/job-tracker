@@ -1,8 +1,17 @@
 import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 import { authConfig } from "@/lib/auth.config";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { parseClientIp } from "@/lib/request-ip";
 
 const { auth } = NextAuth(authConfig);
+
+// NextAuth's raw credentials-exchange endpoint. The H-2 "auth" rate limit
+// normally lives in the credentialsLogin server action (src/app/login/actions.ts)
+// — but that's the *form's* path. A script can POST straight here and skip it
+// entirely, since this route isn't behind the server action. Throttle it here,
+// by IP, before the request reaches NextAuth.
+const CREDENTIALS_CALLBACK = "/api/auth/callback/credentials";
 
 // Routes that require a session. Everything else (/, /login, /register, …) is
 // public and only receives the CSP, not the auth redirect.
@@ -33,8 +42,27 @@ function buildCsp(nonce: string): string {
   ].join("; ");
 }
 
-export default auth((req) => {
+// Named and exported separately from the `auth(...)`-wrapped default export so
+// the routing/rate-limit branch logic is unit-testable without mocking
+// NextAuth's whole HOF. Behavior is unchanged — this is the same function.
+export async function handleMiddleware(
+  req: Parameters<Parameters<typeof auth>[0]>[0]
+): Promise<NextResponse> {
   const path = req.nextUrl.pathname;
+
+  if (path === CREDENTIALS_CALLBACK && req.method === "POST") {
+    const ip = parseClientIp(
+      req.headers.get("x-forwarded-for"),
+      req.headers.get("x-real-ip")
+    );
+    const rate = await enforceRateLimit("auth", ip);
+    if (!rate.ok) {
+      return new NextResponse("Too many requests. Please wait a moment.", {
+        status: 429,
+        headers: { "Retry-After": String(rate.retryAfterSeconds) },
+      });
+    }
+  }
 
   // Per-request nonce — Web Crypto only (edge runtime has no Node Buffer).
   const bytes = new Uint8Array(16);
@@ -55,12 +83,17 @@ export default auth((req) => {
   const res = NextResponse.next({ request: { headers: requestHeaders } });
   res.headers.set("Content-Security-Policy", csp);
   return res;
-});
+}
+
+export default auth(handleMiddleware);
 
 export const config = {
   // All routes except NextAuth's own endpoints, Next internals, and static
-  // asset files. (Item 4 re-includes the credentials callback for rate limiting.)
+  // asset files — with one deliberate exception: api/auth/callback/credentials
+  // stays IN scope (via the nested negative lookahead below) so it gets rate
+  // limited above. Every other api/auth/* route (session, csrf, oauth
+  // callbacks, signout, …) is untouched, exactly as before.
   matcher: [
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|webmanifest)$).*)",
+    "/((?!api/auth(?!/callback/credentials(?:$|/))|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|webmanifest)$).*)",
   ],
 };
