@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { explainMatch } from "@/lib/services/match-explanation";
 import { parseFormData } from "@/lib/forms";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { computeCostCents } from "@/lib/pricing";
 import { AI_MODELS } from "@/lib/ai-models";
 import { assertActionsPresent, assertNoTeaserLanguage } from "@/lib/explanation-guards";
@@ -24,6 +25,13 @@ export async function explainMatchAction(
     const session = await auth();
     if (!session?.user?.id) redirect("/login");
     const userId = session.user.id;
+
+    const rate = await enforceRateLimit("ai", `user:${userId}`);
+    if (!rate.ok) {
+      return {
+        error: "You're doing that too fast. Please wait a bit and try again.",
+      };
+    }
 
     const { jobId, resumeId } = parseFormData(formData, ExplainSchema);
 

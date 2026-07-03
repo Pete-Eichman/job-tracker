@@ -9,6 +9,7 @@ import {
 } from "@/lib/services/job-extraction";
 import { scoreJob } from "@/app/actions/score-job";
 import { parseFormData } from "@/lib/forms";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { computeCostCents } from "@/lib/pricing";
 import { AI_MODELS } from "@/lib/ai-models";
 import { revalidatePath } from "next/cache";
@@ -26,6 +27,13 @@ export async function extractAndSaveJob(
     const session = await auth();
     if (!session?.user?.id) redirect("/login");
     const userId = session.user.id;
+
+    const rate = await enforceRateLimit("ai", `user:${userId}`);
+    if (!rate.ok) {
+      return {
+        error: "You're doing that too fast. Please wait a bit and try again.",
+      };
+    }
 
     const { url } = parseFormData(formData, ExtractSchema);
 

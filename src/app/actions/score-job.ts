@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@/generated/prisma/client";
 import { scoreJobAgainstResume } from "@/lib/services/match-scoring";
 import { parseFormData } from "@/lib/forms";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { computeCostCents } from "@/lib/pricing";
 import { sha256Hex } from "@/lib/hash";
 import { AI_MODELS } from "@/lib/ai-models";
@@ -145,6 +146,16 @@ export async function rescoreJobAction(
   formData: FormData
 ): Promise<{ error?: string }> {
   try {
+    const session = await auth();
+    if (!session?.user?.id) return { error: "Please sign in and try again." };
+
+    const rate = await enforceRateLimit("ai", `user:${session.user.id}`);
+    if (!rate.ok) {
+      return {
+        error: "You're doing that too fast. Please wait a bit and try again.",
+      };
+    }
+
     const { jobId, resumeId } = parseFormData(formData, RescoreSchema);
     await scoreJob(jobId, resumeId);
     return {};

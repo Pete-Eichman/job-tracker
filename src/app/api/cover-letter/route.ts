@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { streamCoverLetter } from "@/lib/services/cover-letter";
 import { scoreJob } from "@/app/actions/score-job";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { computeCostCents } from "@/lib/pricing";
 import { AI_MODELS } from "@/lib/ai-models";
 
@@ -17,6 +18,14 @@ export async function POST(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
   const userId = session.user.id;
+
+  const rate = await enforceRateLimit("ai", `user:${userId}`);
+  if (!rate.ok) {
+    return new Response("Too many requests. Please wait a moment.", {
+      status: 429,
+      headers: { "Retry-After": String(rate.retryAfterSeconds) },
+    });
+  }
 
   let payload: unknown;
   try {
