@@ -45,7 +45,7 @@ function buildCsp(nonce: string): string {
 // Named and exported separately from the `auth(...)`-wrapped default export so
 // the routing/rate-limit branch logic is unit-testable without mocking
 // NextAuth's whole HOF. Behavior is unchanged — this is the same function.
-export async function handleMiddleware(
+export async function handleProxy(
   req: Parameters<Parameters<typeof auth>[0]>[0]
 ): Promise<NextResponse> {
   const path = req.nextUrl.pathname;
@@ -85,7 +85,7 @@ export async function handleMiddleware(
   return res;
 }
 
-export default auth(handleMiddleware);
+export default auth(handleProxy);
 
 export const config = {
   // All routes except NextAuth's own endpoints, Next internals, and static
