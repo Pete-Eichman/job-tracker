@@ -13,7 +13,7 @@ import { enforceRateLimit } from "@/lib/rate-limit";
 import { computeCostCents } from "@/lib/pricing";
 import { AI_MODELS } from "@/lib/ai-models";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 
 const ExtractSchema = z.object({
   url: z.string().url(),
@@ -82,6 +82,7 @@ export async function extractAndSaveJob(
     revalidatePath("/dashboard");
     return {};
   } catch (err) {
+    unstable_rethrow(err);
     return {
       error:
         err instanceof Error

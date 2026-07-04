@@ -1,7 +1,7 @@
 /**
  * Offline eval harness for resume-to-job match scoring.
  *
- * Runs the EVAL composite scorer (`src/lib/scoring/scoreResume.ts`) over the
+ * Runs the EVAL composite scorer (`src/lib/scoring/score-resume.ts`) over the
  * committed fixtures in `eval/dataset/cases.jsonl`, several times per case, and
  * reports:
  *   - Consistency: per-case SD of the composite score, then the mean SD across
@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url";
 import { AI_MODELS } from "@/lib/ai-models";
 import { computeCostCents, formatSpend, formatTokens } from "@/lib/pricing";
 import { RUBRIC_DIMENSIONS, type DimensionKey } from "@/lib/scoring/rubric";
-import { scoreResumeAgainstJob } from "@/lib/scoring/scoreResume";
+import { scoreResumeAgainstJob } from "@/lib/scoring/score-resume";
 import type { JobForBrief } from "@/lib/services/job-brief";
 import { mean, stddev, spearman } from "@/lib/scoring/stats";
 

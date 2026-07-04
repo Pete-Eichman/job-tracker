@@ -11,7 +11,7 @@ import { computeCostCents } from "@/lib/pricing";
 import { sha256Hex } from "@/lib/hash";
 import { AI_MODELS } from "@/lib/ai-models";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 
 const RescoreSchema = z.object({
   jobId: z.string().min(1),
@@ -160,6 +160,10 @@ export async function rescoreJobAction(
     await scoreJob(jobId, resumeId);
     return {};
   } catch (err) {
+    // Defensive: scoreJob() re-checks the session itself and can redirect()
+    // if it's somehow gone by the time it runs, even though this action
+    // already validated it above.
+    unstable_rethrow(err);
     const message =
       err instanceof Error ? err.message : "Scoring failed. Please try again.";
     return { error: message };

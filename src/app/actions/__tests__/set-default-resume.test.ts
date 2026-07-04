@@ -19,7 +19,7 @@ vi.mock("@/lib/db", () => ({
 // Avoid pulling unpdf in via save-resume's other export.
 vi.mock("@/lib/services/pdf-extract", () => ({ extractPdfText: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
-vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
+vi.mock("next/navigation", () => ({ redirect: vi.fn(), unstable_rethrow: vi.fn() }));
 
 import { setDefaultResume } from "@/app/actions/save-resume";
 

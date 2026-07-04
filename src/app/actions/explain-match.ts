@@ -10,7 +10,7 @@ import { computeCostCents } from "@/lib/pricing";
 import { AI_MODELS } from "@/lib/ai-models";
 import { assertActionsPresent, assertNoTeaserLanguage } from "@/lib/explanation-guards";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 
 const ExplainSchema = z.object({
   jobId: z.string().min(1),
@@ -79,6 +79,7 @@ export async function explainMatchAction(
     revalidatePath(`/dashboard/jobs/${jobId}`);
     return {};
   } catch (err) {
+    unstable_rethrow(err);
     const message =
       err instanceof Error ? err.message : "Explanation failed. Please try again.";
     return { error: message };
