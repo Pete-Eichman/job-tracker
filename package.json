@@ -18,10 +18,10 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.78",
     "@auth/prisma-adapter": "^2.11.2",
-    "@upstash/ratelimit": "^2.0.8",
-    "@upstash/redis": "^1.38.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.0",
     "ai": "^6.0.184",
     "bcryptjs": "^3.0.3",
     "next": "16.2.6",
@@ -29,25 +29,31 @@
     "pg": "^8.20.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "undici": "^7.16.0",
+    "undici": "^7.28.0",
     "unpdf": "^1.6.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.3.2",
     "@types/bcryptjs": "^3.0.0",
-    "@types/node": "^20",
+    "@types/node": "^20.19.43",
     "@types/pg": "^8.20.0",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@vitest/coverage-v8": "^4.1.6",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^4.1.9",
     "dotenv": "^17.4.2",
-    "eslint": "^9",
+    "eslint": "^9.39.4",
     "eslint-config-next": "16.2.6",
     "prisma": "^7.8.0",
-    "tailwindcss": "^4",
-    "tsx": "^4.20.6",
-    "typescript": "^5",
-    "vitest": "^4.1.6"
+    "tailwindcss": "^4.3.2",
+    "tsx": "^4.23.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.9"
+  },
+  "pnpm": {
+    "overrides": {
+      "@hono/node-server": ">=1.19.14",
+      "vite": "8.1.3"
+    }
   }
 }

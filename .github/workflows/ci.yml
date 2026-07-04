@@ -31,3 +31,9 @@ jobs:
       - run: pnpm exec tsc --noEmit
 
       - run: pnpm test
+
+      - run: pnpm exec next build
+        env:
+          DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
+          AUTH_SECRET: "ci-placeholder-secret-ci-placeholder-secret00"
+          ANTHROPIC_API_KEY: "sk-ci-placeholder"
