@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 // Static security headers applied to every response. The Content-Security-Policy
-// is intentionally NOT here — it's set per-request in middleware.ts with a fresh
+// is intentionally NOT here — it's set per-request in proxy.ts with a fresh
 // nonce so inline framework scripts can be allowed without 'unsafe-inline'.
 const securityHeaders = [
   {

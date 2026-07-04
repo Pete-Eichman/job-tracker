@@ -26,7 +26,7 @@ export default async function RootLayout({
 }>) {
   // headers() is a dynamic API — calling it opts every route under this
   // layout into per-request rendering, which is required for Next to read
-  // the per-request CSP nonce (set in middleware.ts) and stamp it onto its
+  // the per-request CSP nonce (set in proxy.ts) and stamp it onto its
   // own bootstrap scripts. Without this, routes with no other dynamic data
   // (e.g. /login) get statically prerendered at build time with no nonce,
   // and 'strict-dynamic' blocks every script.
