@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { parseFormData } from "@/lib/forms";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 
 const DeleteSchema = z.object({
   coverLetterId: z.string().min(1),
@@ -35,6 +35,7 @@ export async function deleteCoverLetterAction(
     revalidatePath(`/dashboard/jobs/${letter.jobId}`);
     return {};
   } catch (err) {
+    unstable_rethrow(err);
     return {
       error:
         err instanceof Error

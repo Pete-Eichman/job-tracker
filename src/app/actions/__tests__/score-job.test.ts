@@ -26,7 +26,7 @@ vi.mock("@/lib/services/match-scoring", () => ({
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
-vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
+vi.mock("next/navigation", () => ({ redirect: vi.fn(), unstable_rethrow: vi.fn() }));
 
 import { scoreJob } from "@/app/actions/score-job";
 

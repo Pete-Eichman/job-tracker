@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { parseFormData } from "@/lib/forms";
 import { extractPdfText } from "@/lib/services/pdf-extract";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 
 const MAX_PDF_BYTES = 5 * 1024 * 1024;
 const MIN_TEXT_CHARS = 50;
@@ -33,6 +33,10 @@ export async function saveResume(
     if (!session?.user?.id) redirect("/login");
     const userId = session.user.id;
 
+    // Read fields manually instead of via parseFormData: the PDF-file branch
+    // below needs the raw File object and a rawText fallback before any zod
+    // parsing happens, which doesn't fit that helper's flat-object shape.
+    // Final validation still goes through SaveResumeSchema below.
     const title = String(formData.get("title") ?? "").trim();
     const pdf = formData.get("pdf");
     let rawText = String(formData.get("rawText") ?? "");
@@ -71,6 +75,7 @@ export async function saveResume(
     revalidatePath("/dashboard");
     return {};
   } catch (err) {
+    unstable_rethrow(err);
     return {
       error:
         err instanceof Error ? err.message : "Save failed. Please try again.",
@@ -109,6 +114,7 @@ export async function setDefaultResume(
     revalidatePath("/dashboard");
     return {};
   } catch (err) {
+    unstable_rethrow(err);
     return {
       error:
         err instanceof Error

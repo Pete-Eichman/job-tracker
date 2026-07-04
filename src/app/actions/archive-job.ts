@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { parseFormData } from "@/lib/forms";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 
 const Schema = z.object({ jobId: z.string().min(1) });
 
@@ -37,6 +37,7 @@ export async function toggleArchiveAction(
     await setArchivedAt(formData, shouldArchive ? new Date() : null);
     return {};
   } catch (err) {
+    unstable_rethrow(err);
     return {
       error:
         err instanceof Error

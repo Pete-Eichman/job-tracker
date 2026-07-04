@@ -11,7 +11,7 @@ vi.mock("@/lib/db", () => ({
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
-vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
+vi.mock("next/navigation", () => ({ redirect: vi.fn(), unstable_rethrow: vi.fn() }));
 
 import { toggleArchiveAction } from "@/app/actions/archive-job";
 

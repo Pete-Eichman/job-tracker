@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { parseFormData } from "@/lib/forms";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { JOB_STATUS_VALUES } from "@/lib/job-status";
 import type { JobStatus } from "@/generated/prisma/enums";
 
@@ -51,6 +51,7 @@ export async function updateStatusAction(
     revalidatePath("/dashboard");
     return {};
   } catch (err) {
+    unstable_rethrow(err);
     return {
       error:
         err instanceof Error
@@ -112,6 +113,7 @@ export async function updateJobAction(
     revalidatePath("/dashboard");
     return {};
   } catch (err) {
+    unstable_rethrow(err);
     return {
       error:
         err instanceof Error ? err.message : "Save failed. Please try again.",
