@@ -16,14 +16,22 @@ export function LoginForm() {
 
   return (
     <form action={formAction} className="space-y-3">
+      <label htmlFor="login-email" className="sr-only">
+        Email
+      </label>
       <input
+        id="login-email"
         type="email"
         name="email"
         placeholder="Email"
         required
         className={inputClass}
       />
+      <label htmlFor="login-password" className="sr-only">
+        Password
+      </label>
       <input
+        id="login-password"
         type="password"
         name="password"
         placeholder="Password"

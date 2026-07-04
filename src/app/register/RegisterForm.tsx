@@ -13,14 +13,22 @@ export function RegisterForm() {
 
   return (
     <form action={formAction} className="space-y-3">
+      <label htmlFor="register-email" className="sr-only">
+        Email
+      </label>
       <input
+        id="register-email"
         type="email"
         name="email"
         placeholder="Email"
         required
         className={inputClass}
       />
+      <label htmlFor="register-password" className="sr-only">
+        Password (minimum 8 characters)
+      </label>
       <input
+        id="register-password"
         type="password"
         name="password"
         placeholder="Password (min 8 chars)"
